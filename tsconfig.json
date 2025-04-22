@@ -1,0 +1,19 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false, // Cho phép `any` mà không báo lỗi,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+  }
+}
