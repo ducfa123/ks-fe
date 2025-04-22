@@ -19,29 +19,29 @@ export const TelegramConnectBox: React.FC = () => {
   const theme = useTheme();
 
   const fetchToken = async () => {
-    setStatus("loading");
-    try {
-      const res = await APIServices.TelegramService.taoTokenLienKetTelegram();
-      setQrUrl(res.qr_url);
-      setToken(res.token);
-    } finally {
-      setStatus("idle");
-    }
+    // setStatus("loading");
+    // try {
+    //   const res = await APIServices.TelegramService.taoTokenLienKetTelegram();
+    //   setQrUrl(res.qr_url);
+    //   setToken(res.token);
+    // } finally {
+    //   setStatus("idle");
+    // }
   };
 
   const pollingCheck = async () => {
     if (!token || status === "linked") return;
     setChecking(true);
-    try {
-      const res = await APIServices.TelegramService.kiemTraLienKetTelegram(token);
-      if (res?.linked) {
-        setStatus("linked");
-      }
-    } catch (err) {
-      console.error("Polling error", err);
-    } finally {
-      setChecking(false);
-    }
+    // try {
+    //   const res = await APIServices.TelegramService.kiemTraLienKetTelegram(token);
+    //   if (res?.linked) {
+    //     setStatus("linked");
+    //   }
+    // } catch (err) {
+    //   console.error("Polling error", err);
+    // } finally {
+    //   setChecking(false);
+    // }
   };
 
   useEffect(() => {

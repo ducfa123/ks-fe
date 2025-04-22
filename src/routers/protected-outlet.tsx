@@ -40,7 +40,7 @@ const ProtectedOutlet: FC<RouterProps> = ({ requireLogin = false }) => {
   useEffect(() => {
     const checkToken = async () => {
       try {
-        const ans = await APIServices.Auth.checkToken();
+        const ans: any = await APIServices.Auth.checkToken();
         const { data: user } = ans;
         dispatch(
           updateInfo({

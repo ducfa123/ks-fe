@@ -84,12 +84,12 @@ const HeaderCustom: React.FC = () => {
   const router = useNavigate();
 
   const checkTelegramStatus = async () => {
-    try {
-      const info = await APIServices.TelegramService.getMyTelegramInfo();
-      setTelegramConnected(info?.telegram_id ? true : false);
-    } catch (err) {
-      setTelegramConnected(false);
-    }
+    // try {
+    //   const info = await APIServices.TelegramService.getMyTelegramInfo();
+    //   setTelegramConnected(info?.telegram_id ? true : false);
+    // } catch (err) {
+    //   setTelegramConnected(false);
+    // }
   };
 
   useEffect(() => {
