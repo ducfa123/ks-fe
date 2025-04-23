@@ -5,6 +5,8 @@ import { FaEye, FaEdit } from "react-icons/fa";
 const SystemFeaturesTextMap: Record<SystemFeatures, string> = {
   [SystemFeatures.QuanLyNguoiDung]: "Quản lý người dùng",
   [SystemFeatures.PhanQuyen]: "Phân quyền",
+  [SystemFeatures.QuanLyDanhMucSanPham]: "Quản lý danh mục sản phẩm",
+  [SystemFeatures.QuanLySanPham]: "Quản lý sản phẩm",
 };
 
 export const getTextOfChucNang = (chucNang: SystemFeatures): string => {

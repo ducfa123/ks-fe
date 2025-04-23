@@ -8,6 +8,8 @@ import { VaiTroPage } from "../pages/management/vai-tro";
 import { PhanQuyenPage } from "../pages/management/quyen";
 import { NguoiDungPage } from "../pages/management/nguoi-dung";
 import { SystemFeatures, SystemAction } from "../types";
+import { DanhMucSanPhamPage } from "../pages/management/danh-muc-san-pham";
+import { SanPhamPage } from "../pages/management/san-pham";
 
 const MainRoutes = [
   { path: "*", element: <Navigate to={RouterLink.LOGIN} replace /> },
@@ -45,6 +47,18 @@ const MainRoutes = [
             path: RouterLink.QUAN_LY_PHAN_QUYEN,
             element: <PhanQuyenPage />,
             module: SystemFeatures.PhanQuyen,
+            action: [SystemAction.View, SystemAction.Edit],
+          },
+          {
+            path: RouterLink.QUAN_LY_DANH_MUC_SAN_PHAM,
+            element: <DanhMucSanPhamPage />,
+            module: SystemFeatures.QuanLyDanhMucSanPham,
+            action: [SystemAction.View, SystemAction.Edit],
+          },
+          {
+            path: RouterLink.QUAN_LY_SAN_PHAM,
+            element: <SanPhamPage />,
+            module: SystemFeatures.QuanLySanPham,
             action: [SystemAction.View, SystemAction.Edit],
           },
         ],

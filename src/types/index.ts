@@ -7,6 +7,8 @@ export * from "./permissions.type";
 export enum SystemFeatures {
   QuanLyNguoiDung = "QuanLyNguoiDung",
   PhanQuyen = "PhanQuyen",
+  QuanLyDanhMucSanPham = "QuanLyDanhMucSanPham",
+  QuanLySanPham = "QuanLySanPham",
 }
 
 export enum SystemAction {
