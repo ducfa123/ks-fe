@@ -1,5 +1,4 @@
 import { Column } from "../../../components/tTable/types";
-import { APIServices } from "../../../utils";
 
 export type NguoiDungUI = {
   _id: string;
@@ -10,28 +9,14 @@ export type NguoiDungUI = {
 };
 
 export const columns: Array<Column> = [
-  { id: "ho_ten", label: "Họ tên", minWidth: 150 },
-  { id: "tai_khoan", label: "Tài khoản", minWidth: 150 },
-  { id: "vai_tro_display", label: "Vai trò", minWidth: 150 },
-  { id: "so_du_text", label: "Số dư", minWidth: 100, align: "right" },
+  { id: "ma_san_pham", label: "Mã sản phẩm", minWidth: 100 },
+  { id: "ten", label: "Tên sản phẩm", minWidth: 150 },
+  { id: "gia_text", label: "Giá sản phẩm", minWidth: 150 },
+  { id: "hinh_anh", label: "Hình ảnh", minWidth: 150 },
   { id: "actions", label: "Hành động", minWidth: 200, align: "right" },
 ];
 
 export const columnForms = [
-  {
-    id: "vai_tro",
-    label: "Vai trò",
-    type: "select",
-    options: [],
-    required: true,
-  },
-  { id: "tai_khoan", label: "Tài khoản", type: "text", required: true },
-  { id: "mat_khau", label: "Mật khẩu", type: "password", required: true },
-  {
-    id: "confirm_password",
-    label: "Xác nhận mật khẩu",
-    type: "password",
-    required: true,
-  },
-  { id: "ho_ten", label: "Họ tên", type: "text", required: true },
+  { id: "ten", label: "Tên danh mục", type: "text", required: true },
+  { id: "mo_ta", label: "Mô tả", type: "textarea" },
 ];

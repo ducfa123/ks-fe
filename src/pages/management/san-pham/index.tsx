@@ -3,12 +3,7 @@ import * as styles from "./styles";
 import { useEffect, useState } from "react";
 import { APIServices } from "../../../utils";
 import { TTable } from "../../../components/tTable";
-import {
-  addActionToRows,
-  addFetchOptionsToColumns,
-  addFieldToItems,
-  addOptionsToColumns,
-} from "../../../utils/table-helper";
+import { addActionToRows, addFieldToItems } from "../../../utils/table-helper";
 import { columnForms, columns } from "./types";
 import { TShowConfirm } from "../../../components";
 import { useNotifier } from "../../../provider/NotificationProvider";
@@ -17,12 +12,11 @@ import { Button } from "@mui/material";
 import { IoAddCircle } from "react-icons/io5";
 import { TFormModal } from "../../../components/tFormModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { MAX_ENTITY_REQUEST } from "../../../const";
 import { formatNumberVND } from "../../../utils/common";
-import { TAutoComplete } from "../../../components/tAutoComplete"; // ✅ Thêm import này
+import { TSanPhamImageViewer } from "../../../components/tSanPhamImageViewer";
 
 export const SanPhamPage = () => {
-  const [nguoiDungs, setNguoiDungs] = useState<any>([]);
+  const [entities, setEntities] = useState<any>([]);
   const [currentEntity, setCurrentEntity] = useState<any | null>(null);
 
   const [pageSize, setPageSize] = useState<number>(10);
@@ -39,75 +33,32 @@ export const SanPhamPage = () => {
     null
   );
 
-  const [vaiTros, setVaiTros] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
-  const [vaiTroFilter, setVaiTroFilter] = useState<string[]>([]); // ✅ State filter vai_tro_name
-
   const loadData = async (
     requestSize = pageSize,
     requestIndex = pageIndex,
-    requestText = "",
-    vaiTros = vaiTroFilter
+    requestText = ""
   ) => {
     try {
-      let request;
-
-      if (vaiTros.length > 0) {
-        request = await APIServices.NguoiDungService.getListEntityByVaiTros(
-          requestIndex,
-          requestSize,
-          requestText,
-          vaiTros
-        );
-      } else {
-        request = await APIServices.NguoiDungService.getListEntity(
-          requestIndex,
-          requestSize,
-          requestText
-        );
-      }
+      const request = await APIServices.SanPhamService.getListEntity(
+        requestIndex,
+        requestSize,
+        requestText
+      );
 
       const { items, total, page, size } = request;
-      setNguoiDungs(items);
+      setEntities(items);
       setPageSize(size);
       setPageIndex(page);
       setTotal(total);
     } catch (e) {}
   };
 
-  const loadVaiTros = async () => {
-    const request = await APIServices.VaiTroService.getListEntity(
-      1,
-      MAX_ENTITY_REQUEST
-    );
-    const { items } = request;
-    const entities: Array<{ label: string; value: string }> = items?.map(
-      (item) => {
-        return {
-          value: item?._id,
-          label: item?.ten,
-        };
-      }
-    );
-
-    setVaiTros(entities);
-  };
-
   useEffect(() => {
     loadData();
-    loadVaiTros();
   }, []);
 
   const handleSearch = (value: string) => {
     loadData(pageSize, 1, value);
-  };
-
-  const handleChangeVaiTroFilter = (value: any) => {
-    if (Array.isArray(value)) {
-      setVaiTroFilter(value);
-      loadData(pageSize, 1, "", value);
-    }
   };
 
   const handleEdit = (row) => {
@@ -121,11 +72,11 @@ export const SanPhamPage = () => {
 
   const handleRemove = async (row) => {
     try {
-      await APIServices.NguoiDungService.removeEntity(row?._id);
+      await APIServices.SanPhamService.removeEntity(row?._id);
 
-      success("Xoá người dùng thành công");
+      success("Xoá danh mục sản phẩm thành công");
     } catch {
-      error("Xoá người dùng thất bại");
+      error("Xoá danh mục sản phẩm thất bại");
     } finally {
       setModalConfirmRemoveState(false);
       loadData();
@@ -147,32 +98,35 @@ export const SanPhamPage = () => {
 
     try {
       if (data._id) {
-        await APIServices.NguoiDungService.updateEntity(data._id, data);
-        success("Cập nhật người dùng thành công");
+        await APIServices.SanPhamService.updateEntity(data._id, data);
+        success("Cập nhật danh mục sản phẩm thành công");
       } else {
-        await APIServices.NguoiDungService.insertEntity(data);
-        success("Thêm người dùng thành công");
+        await APIServices.SanPhamService.insertEntity(data);
+        success("Thêm danh mục sản phẩm thành công");
       }
     } catch (ex) {
-      if (values._id) error("Cập nhật người dùng thất bại");
-      else error("Thêm người dùng thất bại");
+      if (values._id) error("Cập nhật danh mục sản phẩm thất bại");
+      else error("Thêm danh mục sản phẩm thất bại");
     } finally {
       setModalOpen(false);
       loadData();
     }
   };
 
-  let rowsRender = addFieldToItems(nguoiDungs, "vai_tro_text", (row: any) => {
-    return row?.chi_tiet_vai_tro?.ten ?? "";
+  let rowsRender = entities;
+
+  rowsRender = addFieldToItems(rowsRender, "hinh_anh", (entity: any) => {
+    if (!entity?.hinh_anh) return null;
+
+    return <TSanPhamImageViewer images={entity.hinh_anh} />;
   });
-  rowsRender = addFieldToItems(rowsRender, "vai_tro_display", (row: any) => {
-    let ans = row?.chi_tiet_vai_tro?.ten ?? "";
-    if (row?.con_em_detail) ans += ` [${row?.con_em_detail?.ho_ten}]`;
-    return ans;
+
+  rowsRender = addFieldToItems(rowsRender, "gia_text", (entity: any) => {
+    if (!entity?.gia) return "";
+
+    return formatNumberVND(entity?.gia);
   });
-  rowsRender = addFieldToItems(rowsRender, "trung_tam_display", (row: any) => {
-    return row?.trung_tam_detail?.ten;
-  });
+
   rowsRender = addActionToRows(
     rowsRender,
     [
@@ -191,44 +145,9 @@ export const SanPhamPage = () => {
     ],
     "flex-end"
   );
-  rowsRender = addFieldToItems(rowsRender, "so_du_text", (row: any) => {
-    return (
-      <Box
-        sx={{
-          fontWeight: 500,
-          display: "flex",
-          gap: "5px",
-          justifyContent: "flex-end",
-        }}
-      >
-        {formatNumberVND(row?.so_du ?? 0)}
-      </Box>
-    );
-  });
 
   // form
-  let finalColumnForm = addOptionsToColumns(columnForms, "vai_tro", vaiTros);
-  finalColumnForm = addFetchOptionsToColumns(
-    finalColumnForm,
-    "con_em",
-    async (input: string) => {
-      try {
-        const res = await APIServices.NguoiDungService.getListEntityByVaiTros(
-          1,
-          8,
-          input,
-          ["Học sinh"]
-        );
-        const { items } = res;
-        return items.map((item: any) => ({
-          value: item._id,
-          label: item.ho_ten,
-        }));
-      } catch {
-        return [];
-      }
-    }
-  );
+  const finalColumnForm = columnForms;
 
   return (
     <Box sx={styles.container}>
@@ -240,28 +159,11 @@ export const SanPhamPage = () => {
             sx={styles.addButtonStyle}
             onClick={() => handleOpenModal()}
           >
-            Thêm người dùng
+            Thêm danh mục
           </Button>
         </Box>
 
         <TSearchText onSearch={handleSearch} />
-      </Box>
-
-      <Box sx={styles.topBarStyle}>
-        {/* ✅ Filter theo vai trò */}
-        <Box sx={{ minWidth: "300px", background: "white" }}>
-          <TAutoComplete
-            label="Lọc theo vai trò"
-            options={vaiTros.map((item) => {
-              return { label: item?.label, value: item?.label };
-            })}
-            multiple
-            initValue={vaiTroFilter}
-            onChange={handleChangeVaiTroFilter}
-            error={false}
-            helperText=""
-          />
-        </Box>
       </Box>
 
       <Box sx={styles.tableContainerStyle}>
@@ -298,7 +200,7 @@ export const SanPhamPage = () => {
       <TShowConfirm
         visible={modalConfirmRemove}
         title={"Thông báo"}
-        message={`Bạn có chắc chắn xoá người dùng [${currentEntity?.ho_ten}] không?`}
+        message={`Bạn có chắc chắn xoá danh mục sản phẩm [${currentEntity?.ten}] không?`}
         onConfirm={() => {
           setModalConfirmRemoveState(false);
           if (currentEntity) handleRemove(currentEntity);

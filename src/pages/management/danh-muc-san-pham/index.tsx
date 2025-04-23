@@ -70,7 +70,7 @@ export const DanhMucSanPhamPage = () => {
 
   const handleRemove = async (row) => {
     try {
-      await APIServices.NguoiDungService.removeEntity(row?._id);
+      await APIServices.DanhMucSanPhamService.removeEntity(row?._id);
 
       success("Xoá danh mục sản phẩm thành công");
     } catch {
