@@ -1,0 +1,70 @@
+name: Deploy Vite to Nginx using SSH Password
+
+on:
+  push:
+    branches:
+      - main # Chạy khi push lên nhánh main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Create .env file from GitHub Secrets
+        run: |
+          echo "==== Tạo file .env ===="
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-build
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build files
+        uses: actions/download-artifact@v4
+        with:
+          name: vite-build
+          path: dist
+
+      - name: Install sshpass
+        run: sudo apt-get install -y sshpass
+
+      - name: Deploy to server via SCP
+        run: |
+          echo "==== Copying files to server ===="
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -o StrictHostKeyChecking=no -r dist/* \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/root/source/shop-tool-fe/dist
+
+      - name: Restart server services
+        run: |
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            echo "==== Deploying Vite Project ===="
+            cd /root/source/quan-ly-trung-tam-fe
+
+            echo "==== Tạo .env từ GitHub Secrets ===="
+            echo "${{ secrets.ENV_FILE }}" > .env
+
+            echo "==== Restarting Nginx ===="
+            sudo systemctl restart nginx
+          EOF
