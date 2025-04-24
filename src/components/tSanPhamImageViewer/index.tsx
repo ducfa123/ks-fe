@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "react-image-lightbox/style.css";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 interface Props {
