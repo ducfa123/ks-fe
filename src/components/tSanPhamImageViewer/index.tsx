@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import "react-image-lightbox/style.css";
-import Lightbox from "react-image-lightbox";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import "react-image-lightbox/style.css";
 
 interface Props {
   images: string[];
@@ -127,7 +125,7 @@ export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
           </div>
         </div>
       </div>
-
+      {/* 
       {isOpen && (
         <Lightbox
           mainSrc={images[index]}
@@ -139,7 +137,7 @@ export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
           enableZoom={true}
           imageTitle={`Ảnh ${index + 1} / ${images.length}`}
         />
-      )}
+      )} */}
     </div>
   );
 };

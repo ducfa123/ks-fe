@@ -60,7 +60,7 @@ jobs:
           sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             echo "==== Deploying Vite Project ===="
-            cd /root/source/quan-ly-trung-tam-fe
+            cd /root/source/shop-tool-fe
 
             echo "==== Tạo .env từ GitHub Secrets ===="
             echo "${{ secrets.ENV_FILE }}" > .env
