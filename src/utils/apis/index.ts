@@ -3,3 +3,4 @@ export * from "./vai-tro";
 export * from "./nguoi-dung";
 export * from "./danh-muc-san-pham";
 export * from "./san-pham";
+export * from "./phieu-giam-gia";

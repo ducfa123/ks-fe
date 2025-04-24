@@ -1,6 +1,6 @@
 import { RouterKey, RouterLink } from "../../../routers/routers";
 import { SideMenuItem, SystemAction, SystemFeatures } from "../../../types";
-import { IoPeople, IoSettings } from "react-icons/io5";
+import { IoGift, IoPeople, IoSettings } from "react-icons/io5";
 import { RiDashboardLine } from "react-icons/ri";
 import {
   MdAdminPanelSettings,
@@ -39,6 +39,15 @@ export const menus: Array<SideMenuItem> = [
         children: [],
         url: RouterLink.QUAN_LY_SAN_PHAM,
         module: SystemFeatures.QuanLySanPham,
+        action: [SystemAction.View, SystemAction.Edit],
+      },
+      {
+        key: RouterLink.QUAN_LY_PHIEU_GIAM_GIA,
+        icon: <IoGift />,
+        text: "Giảm giá",
+        children: [],
+        url: RouterLink.QUAN_LY_PHIEU_GIAM_GIA,
+        module: SystemFeatures.QuanLyPhieuGiamGia,
         action: [SystemAction.View, SystemAction.Edit],
       },
     ],

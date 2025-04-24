@@ -7,6 +7,7 @@ export const RouterLink = {
 
   QUAN_LY_DANH_MUC_SAN_PHAM: "/ban-hang/quan-ly-danh-muc-san-pham",
   QUAN_LY_SAN_PHAM: "/ban-hang/quan-ly-san-pham",
+  QUAN_LY_PHIEU_GIAM_GIA: "/quan-ly-phieu-giam-gia",
 };
 
 export const RouterKey = {
