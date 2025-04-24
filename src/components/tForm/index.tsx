@@ -22,6 +22,7 @@ import { TCouponInput } from "../tCounponInput";
 import { TSelectDependent } from "../tSelectDependent";
 import { TStarRating } from "../tStarRating";
 import TSelectCustom from "../tSelectCustom";
+import { TSanPhamImageViewer } from "../tSanPhamImageViewer";
 
 interface Column {
   id: string;
@@ -144,6 +145,146 @@ export const TForm: React.FC<FormComponentProps> = ({
 
   const formControl = (type, column) => {
     switch (type) {
+      case "images":
+        return (
+          <FormControl fullWidth>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 500, mb: 0.5, fontSize: "0.85rem" }}
+            >
+              {column.label}
+            </Typography>
+
+            <Box>
+              {Array.isArray(formData[column.id]) &&
+              formData[column.id].length > 0 ? (
+                <Box display="flex" flexDirection="column" gap={1}>
+                  {formData[column.id].map((url: string, index: number) => (
+                    <img
+                      key={index}
+                      src={url}
+                      alt={`img-${index}`}
+                      style={{
+                        width: 200,
+                        maxHeight: 120,
+                        objectFit: "cover",
+                        borderRadius: 8,
+                        border: "1px solid #ccc",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                      }}
+                    />
+                  ))}
+                </Box>
+              ) : (
+                <Typography sx={{ fontSize: 14, color: "#90a4ae" }}>
+                  Không có hình ảnh
+                </Typography>
+              )}
+            </Box>
+          </FormControl>
+        );
+
+      case "files":
+        return (
+          <FormControl fullWidth>
+            <Typography
+              variant="subtitle2"
+              sx={{ fontWeight: 500, mb: 0.5, fontSize: "0.85rem" }}
+            >
+              {column.label}
+            </Typography>
+            <Box
+              sx={{
+                border: "2px dashed #90caf9",
+                borderRadius: "8px",
+                p: 2,
+                textAlign: "center",
+                backgroundColor: "#f5faff",
+                cursor: "pointer",
+                transition: "0.3s",
+                "&:hover": {
+                  backgroundColor: "#e3f2fd",
+                },
+              }}
+              onClick={() => {
+                document.getElementById(`files-input-${column.id}`)?.click();
+              }}
+            >
+              <input
+                id={`files-input-${column.id}`}
+                type="file"
+                accept={column.accept || "*"}
+                style={{ display: "none" }}
+                multiple
+                onChange={(e) => {
+                  const selectedFiles = Array.from(e.target.files ?? []);
+
+                  // Tạo URL preview cho các ảnh
+                  const filePreviews = selectedFiles.map((file) => ({
+                    file,
+                    preview: file.type.startsWith("image/")
+                      ? URL.createObjectURL(file)
+                      : null,
+                  }));
+
+                  setFormData({
+                    ...formData,
+                    [column.id]: filePreviews,
+                  });
+
+                  if (errors[column.id]) {
+                    setErrors({ ...errors, [column.id]: "" });
+                  }
+                }}
+              />
+              <Typography sx={{ fontSize: 14, color: "#1976d2" }}>
+                📁 Nhấn vào đây để chọn nhiều file
+              </Typography>
+
+              {Array.isArray(formData[column.id]) &&
+                formData[column.id].length > 0 && (
+                  <Box mt={2} display="flex" flexDirection="column" gap={1}>
+                    {formData[column.id].map(
+                      (
+                        f: { file: File; preview: string | null },
+                        i: number
+                      ) => (
+                        <Box key={i} display="flex" alignItems="center" gap={2}>
+                          {f.preview ? (
+                            <img
+                              src={f.preview}
+                              alt={`preview-${i}`}
+                              style={{
+                                width: 200,
+                                maxHeight: 120,
+                                objectFit: "cover",
+                                borderRadius: 8,
+                                border: "1px solid #ccc",
+                              }}
+                            />
+                          ) : (
+                            <Typography sx={{ fontSize: 13 }}>
+                              {f.file.name}
+                            </Typography>
+                          )}
+                          <Typography sx={{ fontSize: 13 }}>
+                            {f.file.name}
+                          </Typography>
+                        </Box>
+                      )
+                    )}
+                  </Box>
+                )}
+            </Box>
+
+            {errors[column.id] && (
+              <Typography variant="caption" color="error">
+                {errors[column.id]}
+              </Typography>
+            )}
+          </FormControl>
+        );
+
       case "file":
         return (
           <FormControl fullWidth>
@@ -189,7 +330,7 @@ export const TForm: React.FC<FormComponentProps> = ({
                 }}
               />
               <Typography sx={{ fontSize: 14, color: "#1976d2" }}>
-              📎 Nhấn vào đây để tải lên
+                📎 Nhấn vào đây để tải lên
               </Typography>
               {formData[column.id] && (
                 <Typography
@@ -200,7 +341,7 @@ export const TForm: React.FC<FormComponentProps> = ({
                     fontWeight: 500,
                   }}
                 >
-                   {formData[column.id]?.name}
+                  {formData[column.id]?.name}
                 </Typography>
               )}
             </Box>

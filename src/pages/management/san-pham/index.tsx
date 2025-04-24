@@ -74,9 +74,9 @@ export const SanPhamPage = () => {
     try {
       await APIServices.SanPhamService.removeEntity(row?._id);
 
-      success("Xoá danh mục sản phẩm thành công");
+      success("Xoá sản phẩm thành công");
     } catch {
-      error("Xoá danh mục sản phẩm thất bại");
+      error("Xoá sản phẩm thất bại");
     } finally {
       setModalConfirmRemoveState(false);
       loadData();
@@ -99,14 +99,14 @@ export const SanPhamPage = () => {
     try {
       if (data._id) {
         await APIServices.SanPhamService.updateEntity(data._id, data);
-        success("Cập nhật danh mục sản phẩm thành công");
+        success("Cập nhật sản phẩm thành công");
       } else {
         await APIServices.SanPhamService.insertEntity(data);
-        success("Thêm danh mục sản phẩm thành công");
+        success("Thêm sản phẩm thành công");
       }
     } catch (ex) {
-      if (values._id) error("Cập nhật danh mục sản phẩm thất bại");
-      else error("Thêm danh mục sản phẩm thất bại");
+      if (values._id) error("Cập nhật sản phẩm thất bại");
+      else error("Thêm sản phẩm thất bại");
     } finally {
       setModalOpen(false);
       loadData();
@@ -114,13 +114,14 @@ export const SanPhamPage = () => {
   };
 
   let rowsRender = entities;
-
-  rowsRender = addFieldToItems(rowsRender, "hinh_anh", (entity: any) => {
+  rowsRender = addFieldToItems(rowsRender, "danh_muc_text", (entity: any) => {
+    return entity?.danh_muc_detail?.ten;
+  });
+  rowsRender = addFieldToItems(rowsRender, "hinh_anh_show", (entity: any) => {
     if (!entity?.hinh_anh) return null;
 
     return <TSanPhamImageViewer images={entity.hinh_anh} />;
   });
-
   rowsRender = addFieldToItems(rowsRender, "gia_text", (entity: any) => {
     if (!entity?.gia) return "";
 
@@ -200,7 +201,7 @@ export const SanPhamPage = () => {
       <TShowConfirm
         visible={modalConfirmRemove}
         title={"Thông báo"}
-        message={`Bạn có chắc chắn xoá danh mục sản phẩm [${currentEntity?.ten}] không?`}
+        message={`Bạn có chắc chắn xoá sản phẩm [${currentEntity?.ten}] không?`}
         onConfirm={() => {
           setModalConfirmRemoveState(false);
           if (currentEntity) handleRemove(currentEntity);

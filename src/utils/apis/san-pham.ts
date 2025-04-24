@@ -33,8 +33,8 @@ const insertEntity = async (entity: any) => {
     }
   });
 
-  (files as File[]).forEach((file) => {
-    formData.append("files", file);
+  files.forEach((file: any) => {
+    if (file?.file) formData.append("files", file?.file);
   });
 
   return api.makeAuthRequest({
@@ -52,6 +52,8 @@ const updateEntity = async (id: string, entity: any) => {
 
   const { files = [], ...rest } = entity;
 
+  console.log({ files });
+
   Object.entries(rest).forEach(([key, value]) => {
     if (Array.isArray(value)) {
       value.forEach((v) => formData.append(`${key}[]`, v));
@@ -60,8 +62,8 @@ const updateEntity = async (id: string, entity: any) => {
     }
   });
 
-  (files as File[]).forEach((file) => {
-    formData.append("files", file);
+  files.forEach((file: any) => {
+    if (file?.file) formData.append("files", file?.file);
   });
 
   return api.makeAuthRequest({
