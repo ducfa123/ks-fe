@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 interface Props {
@@ -9,6 +9,10 @@ export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
   const [index, setIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [isImageHovered, setIsImageHovered] = useState(false);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [images]);
 
   if (!images || images.length === 0) return null;
 

@@ -160,19 +160,41 @@ export const TForm: React.FC<FormComponentProps> = ({
               formData[column.id].length > 0 ? (
                 <Box display="flex" flexDirection="column" gap={1}>
                   {formData[column.id].map((url: string, index: number) => (
-                    <img
+                    <Box
                       key={index}
-                      src={url}
-                      alt={`img-${index}`}
-                      style={{
-                        width: 200,
-                        maxHeight: 120,
-                        objectFit: "cover",
-                        borderRadius: 8,
-                        border: "1px solid #ccc",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
-                      }}
-                    />
+                      display="flex"
+                      alignItems="center"
+                      gap={2}
+                    >
+                      <img
+                        src={url}
+                        alt={`img-${index}`}
+                        style={{
+                          width: 200,
+                          height: 80,
+                          objectFit: "cover",
+                          borderRadius: 8,
+                          border: "1px solid #ccc",
+                          boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                        }}
+                      />
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => {
+                          const updated = [...formData[column.id]];
+                          updated.splice(index, 1);
+                          setFormData({
+                            ...formData,
+                            [column.id]: updated,
+                          });
+                        }}
+                        sx={{ textTransform: "none", minWidth: 60 }}
+                      >
+                        Xoá
+                      </Button>
+                    </Box>
                   ))}
                 </Box>
               ) : (

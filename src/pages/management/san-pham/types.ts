@@ -14,7 +14,7 @@ export const columns: Array<Column> = [
   { id: "ten", label: "Tên sản phẩm", minWidth: 150 },
   { id: "danh_muc_text", label: "Danh mục", minWidth: 150 },
   { id: "gia_text", label: "Giá sản phẩm", minWidth: 150 },
-  { id: "hinh_anh_show", label: "Hình ảnh", minWidth: 150 },
+  { id: "hinh_anh_show", label: "Hình ảnh", align: "center", minWidth: 150 },
   { id: "actions", label: "Hành động", minWidth: 200, align: "right" },
 ];
 
@@ -69,7 +69,6 @@ export const columnForms = [
     id: "files",
     label: "Thêm hình ảnh",
     type: "files",
-    required: true,
     accept: ".jpeg,.jpg,.png",
   },
 ];
