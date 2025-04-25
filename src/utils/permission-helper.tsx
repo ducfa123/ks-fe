@@ -7,6 +7,7 @@ const SystemFeaturesTextMap: Record<SystemFeatures, string> = {
   [SystemFeatures.PhanQuyen]: "Phân quyền",
   [SystemFeatures.QuanLyDanhMucSanPham]: "Quản lý danh mục sản phẩm",
   [SystemFeatures.QuanLySanPham]: "Quản lý sản phẩm",
+  [SystemFeatures.QuanLyPhieuGiamGia]: "Quản lý phiếu giảm giá",
 };
 
 export const getTextOfChucNang = (chucNang: SystemFeatures): string => {
