@@ -27,10 +27,6 @@ import { TStarRating } from "../tStarRating";
 import TSelectCustom from "../tSelectCustom";
 import { TMultiSelectFetch } from "../tMultiSelectFetch";
 
-interface BaseFormData {
-  [key: string]: unknown;
-}
-
 interface FileData {
   file: File;
   preview: string | null;
@@ -71,13 +67,14 @@ interface Column {
     | "time"
     | "multi-select"
     | "radio"
-    | "multi-select-fetch";
+    | "multi-select-fetch"
+    | "currency";
   required?: boolean;
   options?: Option[];
   format?: formatTime;
-  condition?: (formData: BaseFormData) => boolean;
+  condition?: (formData: Record<string, any>) => boolean;
   fetchOptions?: (input: string) => Promise<Option[]>;
-  fetchLabel?: (formData: BaseFormData) => Promise<string>;
+  fetchLabel?: (formData: Record<string, any>) => Promise<string>;
   callOnce?: boolean;
   fetchCouponInfo?: (ma: string) => Promise<{
     loai: string;
@@ -88,15 +85,15 @@ interface Column {
   }>;
   parentId?: string;
   getOptionsFromParent?: (parentValue: string | number) => Promise<Option[]>;
-  defaultOptions?: (formData: BaseFormData) => Option[];
+  defaultOptions?: (formData: Record<string, any>) => Option[];
   onChange?: (value: FormValue[keyof FormValue]) => void;
-  validate?: (formData: BaseFormData) => string | null;
+  validate?: (formData: Record<string, any>) => string | null;
 }
 
 interface FormComponentProps {
   columns: Column[];
-  initialValues?: BaseFormData;
-  onSubmit: (values: BaseFormData) => void;
+  initialValues?: Record<string, any>;
+  onSubmit: (values: Record<string, any>) => void;
   onCancel: () => void;
 }
 
@@ -106,7 +103,7 @@ export const TForm: React.FC<FormComponentProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const [formData, setFormData] = useState<BaseFormData>({});
+  const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [filteredColumns, setFilteredColumns] = useState<Column[]>([]);
 
@@ -746,7 +743,6 @@ export const TForm: React.FC<FormComponentProps> = ({
               }}
               error={!!errors[column.id]}
               helperText={errors[column.id]}
-              formValue={formData}
             />
           </FormControl>
         );

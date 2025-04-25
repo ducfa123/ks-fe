@@ -12,7 +12,7 @@ type ModalUpdateUserInfoProps = {
   onClose: () => void;
 };
 
-const columnForms = [
+const columnForms: any = [
   { id: "ho_ten", label: "Họ và tên", type: "text", required: true },
 ];
 
