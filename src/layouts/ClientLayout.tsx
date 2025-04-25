@@ -10,6 +10,8 @@ import {
   ListItem,
   ListItemText,
   Button,
+  Badge,
+  Grid,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -24,6 +26,9 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { RouterLink } from "../routers/routers";
 import logo from "../assets/images/logo.jpg";
+import CartDrawer from "../components/CartDrawer";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -32,6 +37,8 @@ interface ClientLayoutProps {
 export const ClientLayout = ({ children }: ClientLayoutProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { items } = useSelector((state: RootState) => state.cart);
 
   const menuItems = [
     { text: "Trang chủ", path: RouterLink.CLIENT_HOME },
@@ -73,65 +80,37 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <AppBar
-        position="fixed"
-        color="default"
-        elevation={1}
-        sx={{ 
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: "white",
-          color: "text.primary"
-        }}
+        position="sticky"
+        sx={{ bgcolor: "white", color: "black" }}
       >
         <Container maxWidth="lg">
           <Toolbar>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { md: "none" } }}
-            >
-              <MenuIcon />
-            </IconButton>
             <Box
               component="img"
               src={logo}
-              alt="Intx"
+              alt="Logo"
               sx={{ height: 40, mr: 2, cursor: "pointer" }}
               onClick={() => navigate(RouterLink.CLIENT_HOME)}
             />
             <Typography
               variant="h6"
               component="div"
-              sx={{
-                flexGrow: 1,
-                display: { xs: "none", sm: "block" },
-                cursor: "pointer",
-              }}
+              sx={{ flexGrow: 1, cursor: "pointer" }}
               onClick={() => navigate(RouterLink.CLIENT_HOME)}
             >
-              Intx
+              Shop Tools
             </Typography>
-            <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-              {menuItems.map((item) => (
-                <Button
-                  key={item.text}
-                  onClick={() => navigate(item.path)}
-                  sx={{ my: 2, color: "text.primary", display: "block" }}
-                >
-                  {item.text}
-                </Button>
-              ))}
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <IconButton color="inherit">
                 <SearchIcon />
               </IconButton>
-              <IconButton color="inherit">
-                <PersonIcon />
+              <IconButton color="inherit" onClick={() => setIsCartOpen(true)}>
+                <Badge badgeContent={items.length} color="primary">
+                  <ShoppingCartIcon />
+                </Badge>
               </IconButton>
               <IconButton color="inherit">
-                <ShoppingCartIcon />
+                <PersonIcon />
               </IconButton>
             </Box>
           </Toolbar>
@@ -159,17 +138,16 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, mt: 8 }}>
+      <Box component="main" sx={{ flexGrow: 1 }}>
         {children}
       </Box>
 
       <Box
         component="footer"
         sx={{
-          py: 3,
-          px: 2,
+          bgcolor: "#f5f5f5",
+          py: 4,
           mt: "auto",
-          backgroundColor: (theme) => theme.palette.grey[200],
         }}
       >
         <Container maxWidth="lg">
@@ -185,7 +163,8 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
                 Về chúng tôi
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Chúng tôi cung cấp các sản phẩm chất lượng với giá cả phải chăng
+                Shop Tools - Nơi cung cấp các công cụ và thiết bị chất lượng cao
+                cho mọi nhu cầu của bạn.
               </Typography>
             </Box>
             <Box sx={{ mb: 2 }}>
@@ -193,9 +172,11 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
                 Liên hệ
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Email: support@example.com
+                Email: support@shoptools.com
                 <br />
                 Điện thoại: 0123 456 789
+                <br />
+                Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM
               </Typography>
             </Box>
             <Box sx={{ mb: 2 }}>
@@ -225,6 +206,8 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
           </Typography>
         </Container>
       </Box>
+
+      <CartDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </Box>
   );
 };

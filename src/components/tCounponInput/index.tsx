@@ -17,10 +17,10 @@ import { RiCoupon2Line } from "react-icons/ri";
 
 type CouponInfo = {
   loai: string;
-  giam?: number;
-  giam_phan_tram?: number;
+  giam: number;
+  giam_phan_tram: number;
   valid: boolean;
-  message?: string;
+  message: string;
 };
 
 type Props = {

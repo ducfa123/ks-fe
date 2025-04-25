@@ -1,4 +1,5 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import cartReducer from "./slices/cartSlice";
 
 import globalSliceReducer from "./global/global.slice";
 import authSliceReducer from "./auth/auth.slice";
@@ -8,6 +9,7 @@ import { persistReducer, persistStore } from "redux-persist";
 const rootStore = {
   global: globalSliceReducer,
   auth: authSliceReducer,
+  cart: cartReducer,
 };
 const appReducer = combineReducers({
   ...rootStore,

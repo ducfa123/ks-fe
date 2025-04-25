@@ -16,6 +16,20 @@ import {
   FormControlLabel,
   FormControl,
 } from "@mui/material";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
+import { useNavigate } from "react-router-dom";
+import { RouterLink } from "../../../routers/routers";
+import { TCouponInput } from "../../../components/tCounponInput";
+import { APIServices } from "../../../utils";
+
+interface CouponInfo {
+  loai: string;
+  giam: number;
+  giam_phan_tram: number;
+  valid: boolean;
+  message: string;
+}
 
 const steps = [
   "Thông tin giao hàng",
@@ -23,41 +37,114 @@ const steps = [
   "Xác nhận đơn hàng",
 ];
 
-const cartItems = [
-  {
-    id: 1,
-    name: "iPhone 13 Pro Max",
-    price: "29.990.000đ",
-    image:
-      "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-    quantity: 1,
-  },
-  {
-    id: 2,
-    name: "MacBook Pro M1",
-    price: "39.990.000đ",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-    quantity: 1,
-  },
-];
-
 export const ClientCheckoutPage = () => {
+  const navigate = useNavigate();
+  const { items, total } = useSelector((state: RootState) => state.cart);
   const [activeStep, setActiveStep] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [shippingInfo, setShippingInfo] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    city: "",
+    district: "",
+    note: "",
+  });
+  const [couponCode, setCouponCode] = useState("");
+  const [couponInfo, setCouponInfo] = useState<CouponInfo | null>(null);
 
   const handleNext = () => {
-    setActiveStep((prevStep) => prevStep + 1);
+    if (activeStep === steps.length - 1) {
+      // Handle order submission
+      console.log("Submitting order...");
+      navigate(RouterLink.CLIENT_HOME);
+    } else {
+      setActiveStep((prevStep) => prevStep + 1);
+    }
   };
 
   const handleBack = () => {
     setActiveStep((prevStep) => prevStep - 1);
   };
 
-  const total = cartItems.reduce(
-    (sum, item: any) => sum + item?.price * item.quantity,
-    0
-  );
+  const handleShippingInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setShippingInfo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleVerifyCoupon = async (code: string): Promise<CouponInfo> => {
+    try {
+      const response = await APIServices.PhieuGiamGiaService.getListEntity(1, 1, code);
+      if (response.items.length > 0) {
+        const coupon = response.items[0];
+        return {
+          loai: coupon.loai,
+          giam: coupon.giam_tien,
+          giam_phan_tram: coupon.giam_phan_tram,
+          valid: true,
+          message: ""
+        };
+      }
+      return { 
+        loai: "",
+        giam: 0,
+        giam_phan_tram: 0,
+        valid: false,
+        message: "Mã giảm giá không hợp lệ" 
+      };
+    } catch (err) {
+      console.error("Error verifying coupon:", err);
+      return { 
+        loai: "",
+        giam: 0,
+        giam_phan_tram: 0,
+        valid: false,
+        message: "Có lỗi xảy ra khi kiểm tra mã giảm giá" 
+      };
+    }
+  };
+
+  const handleCouponChange = (code: string) => {
+    setCouponCode(code);
+    if (code) {
+      handleVerifyCoupon(code).then((info) => {
+        setCouponInfo(info);
+      });
+    } else {
+      setCouponInfo(null);
+    }
+  };
+
+  const shippingFee = 30000;
+  let discount = 0;
+  if (couponInfo?.valid) {
+    if (couponInfo.loai === "giam_phan_tram") {
+      discount = (total * couponInfo.giam_phan_tram) / 100;
+    } else {
+      discount = couponInfo.giam || 0;
+    }
+  }
+  const finalTotal = total + shippingFee - discount;
+
+  if (items.length === 0) {
+    return (
+      <Container sx={{ py: 4, textAlign: "center" }}>
+        <Typography variant="h5" gutterBottom>
+          Giỏ hàng trống
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
+          sx={{ mt: 2 }}
+        >
+          Tiếp tục mua sắm
+        </Button>
+      </Container>
+    );
+  }
 
   return (
     <Container sx={{ py: 4 }}>
@@ -77,7 +164,7 @@ export const ClientCheckoutPage = () => {
               Đơn hàng của bạn
             </Typography>
             <Divider sx={{ my: 2 }} />
-            {cartItems.map((item) => (
+            {items.map((item) => (
               <Box key={item.id} sx={{ mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={3}>
@@ -94,173 +181,170 @@ export const ClientCheckoutPage = () => {
                       Số lượng: {item.quantity}
                     </Typography>
                     <Typography variant="body1" color="primary">
-                      {item.price.toLocaleString()}đ
+                      {item.price.toLocaleString("vi-VN")}đ
                     </Typography>
                   </Grid>
                 </Grid>
               </Box>
             ))}
             <Divider sx={{ my: 2 }} />
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
               <Typography>Tạm tính</Typography>
-              <Typography>{total.toLocaleString()}đ</Typography>
+              <Typography>{total.toLocaleString("vi-VN")}đ</Typography>
             </Box>
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
               <Typography>Phí vận chuyển</Typography>
-              <Typography>30,000đ</Typography>
+              <Typography>{shippingFee.toLocaleString("vi-VN")}đ</Typography>
             </Box>
+            {couponInfo?.valid && (
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                <Typography>Giảm giá</Typography>
+                <Typography color="error">
+                  -{discount.toLocaleString("vi-VN")}đ
+                </Typography>
+              </Box>
+            )}
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography variant="h6">Tổng cộng</Typography>
               <Typography variant="h6" color="primary">
-                {(total + 30000).toLocaleString()}đ
+                {finalTotal.toLocaleString("vi-VN")}đ
               </Typography>
+            </Box>
+            <Box sx={{ mt: 2 }}>
+              <TCouponInput
+                label="Mã giảm giá"
+                value={couponCode}
+                onChange={handleCouponChange}
+                fetchCouponInfo={handleVerifyCoupon}
+                info={couponInfo}
+                onChangeInfo={setCouponInfo}
+              />
             </Box>
           </Paper>
         </Grid>
 
-        {/* Checkout Form */}
+        {/* Shipping and Payment Forms */}
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3 }}>
-            {activeStep === 0 && (
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Thông tin giao hàng
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Họ và tên"
-                      required
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Số điện thoại"
-                      required
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Địa chỉ"
-                      required
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Tỉnh/Thành phố"
-                      required
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Quận/Huyện"
-                      required
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Ghi chú"
-                      multiline
-                      rows={3}
-                      margin="normal"
-                    />
-                  </Grid>
+          {activeStep === 0 && (
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Thông tin giao hàng
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Họ và tên"
+                    name="name"
+                    value={shippingInfo.name}
+                    onChange={handleShippingInfoChange}
+                    required
+                  />
                 </Grid>
-              </Box>
-            )}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Số điện thoại"
+                    name="phone"
+                    value={shippingInfo.phone}
+                    onChange={handleShippingInfoChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Địa chỉ"
+                    name="address"
+                    value={shippingInfo.address}
+                    onChange={handleShippingInfoChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Thành phố"
+                    name="city"
+                    value={shippingInfo.city}
+                    onChange={handleShippingInfoChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Quận/Huyện"
+                    name="district"
+                    value={shippingInfo.district}
+                    onChange={handleShippingInfoChange}
+                    required
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Ghi chú"
+                    name="note"
+                    value={shippingInfo.note}
+                    onChange={handleShippingInfoChange}
+                    multiline
+                    rows={3}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
 
-            {activeStep === 1 && (
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Phương thức thanh toán
-                </Typography>
-                <FormControl component="fieldset">
-                  <RadioGroup
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  >
-                    <FormControlLabel
-                      value="cod"
-                      control={<Radio />}
-                      label="Thanh toán khi nhận hàng (COD)"
-                    />
-                    <FormControlLabel
-                      value="bank"
-                      control={<Radio />}
-                      label="Chuyển khoản ngân hàng"
-                    />
-                    <FormControlLabel
-                      value="momo"
-                      control={<Radio />}
-                      label="Ví điện tử Momo"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </Box>
-            )}
+          {activeStep === 1 && (
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Phương thức thanh toán
+              </Typography>
+              <FormControl component="fieldset">
+                <RadioGroup
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                >
+                  <FormControlLabel
+                    value="cod"
+                    control={<Radio />}
+                    label="Thanh toán khi nhận hàng (COD)"
+                  />
+                  <FormControlLabel
+                    value="bank"
+                    control={<Radio />}
+                    label="Chuyển khoản ngân hàng"
+                  />
+                </RadioGroup>
+              </FormControl>
+            </Paper>
+          )}
 
-            {activeStep === 2 && (
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Xác nhận đơn hàng
-                </Typography>
-                <Typography paragraph>
-                  Vui lòng kiểm tra lại thông tin đơn hàng trước khi xác nhận.
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  Thông tin giao hàng
-                </Typography>
-                <Typography paragraph>
-                  Nguyễn Văn A
-                  <br />
-                  0123 456 789
-                  <br />
-                  123 Đường ABC, Quận 1, TP.HCM
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom>
-                  Phương thức thanh toán
-                </Typography>
-                <Typography paragraph>
-                  {paymentMethod === "cod"
-                    ? "Thanh toán khi nhận hàng (COD)"
-                    : paymentMethod === "bank"
-                    ? "Chuyển khoản ngân hàng"
-                    : "Ví điện tử Momo"}
-                </Typography>
-              </Box>
-            )}
+          {activeStep === 2 && (
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Xác nhận đơn hàng
+              </Typography>
+              <Typography>
+                Vui lòng kiểm tra lại thông tin đơn hàng trước khi xác nhận
+              </Typography>
+            </Paper>
+          )}
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-              {activeStep !== 0 && (
-                <Button onClick={handleBack} sx={{ mr: 1 }}>
-                  Quay lại
-                </Button>
-              )}
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                disabled={activeStep === steps.length - 1}
-              >
-                {activeStep === steps.length - 1 ? "Hoàn tất" : "Tiếp tục"}
-              </Button>
-            </Box>
-          </Paper>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ mr: 1 }}
+            >
+              Quay lại
+            </Button>
+            <Button variant="contained" onClick={handleNext}>
+              {activeStep === steps.length - 1 ? "Đặt hàng" : "Tiếp tục"}
+            </Button>
+          </Box>
         </Grid>
       </Grid>
     </Container>
