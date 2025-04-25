@@ -64,7 +64,7 @@ const ProtectedOutlet: FC<RouterProps> = ({ requireLogin = false }) => {
     loadPermission();
   }, [loadPermission]);
 
-  if (requireLogin && !isLogin) return <Navigate to={RouterLink.LOGIN} />;
+  if (requireLogin && !isLogin) return <Navigate to={RouterLink.ADMIN_LOGIN} />;
 
   return <Outlet />;
 };

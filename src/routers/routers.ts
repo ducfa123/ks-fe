@@ -1,20 +1,43 @@
 export const RouterLink = {
-  LOGIN: "/dang-nhap",
-  HOME: "/trang-chu",
-  QUAN_LY_NGUOI_DUNG: "/he-thong/quan-ly-nguoi-dung",
-  QUAN_LY_VAI_TRO: "/he-thong/quan-ly-vai-tro",
-  QUAN_LY_PHAN_QUYEN: "/he-thong/quan-ly-phan-quyen/:vaiTroId",
-  QUAN_LY_COMBO_SAN_PHAM: "/he-thong/quan-ly-combo-san-pham",
-  QUAN_LY_TAI_KHOAN_SAN_PHAM: "/he-thong/quan-ly-tai-khoan-san-pham",
+  // Admin routes
+  ADMIN_LOGIN: "/admin/dang-nhap",
+  ADMIN_HOME: "/admin/trang-chu",
+  ADMIN_QUAN_LY_NGUOI_DUNG: "/admin/he-thong/quan-ly-nguoi-dung",
+  ADMIN_QUAN_LY_VAI_TRO: "/admin/he-thong/quan-ly-vai-tro",
+  ADMIN_QUAN_LY_PHAN_QUYEN: "/admin/he-thong/quan-ly-phan-quyen/:vaiTroId",
+  ADMIN_QUAN_LY_COMBO_SAN_PHAM: "/admin/he-thong/quan-ly-combo-san-pham",
+  ADMIN_QUAN_LY_TAI_KHOAN_SAN_PHAM: "/admin/he-thong/quan-ly-tai-khoan-san-pham",
+  ADMIN_QUAN_LY_DANH_MUC_SAN_PHAM: "/admin/ban-hang/quan-ly-danh-muc-san-pham",
+  ADMIN_QUAN_LY_SAN_PHAM: "/admin/ban-hang/quan-ly-san-pham",
+  ADMIN_QUAN_LY_PHIEU_GIAM_GIA: "/admin/ban-hang/quan-ly-phieu-giam-gia",
 
-  QUAN_LY_DANH_MUC_SAN_PHAM: "/ban-hang/quan-ly-danh-muc-san-pham",
-  QUAN_LY_SAN_PHAM: "/ban-hang/quan-ly-san-pham",
-  QUAN_LY_PHIEU_GIAM_GIA: "/quan-ly-phieu-giam-gia",
-};
+  // Client routes
+  CLIENT_HOME: "/",
+  CLIENT_PRODUCTS: "/san-pham",
+  CLIENT_CHECKOUT: "/thanh-toan",
+  CLIENT_LOGIN: "/dang-nhap",
+  CLIENT_ABOUT: "/gioi-thieu",
+  CLIENT_CONTACT: "/lien-he",
+} as const;
 
 export const RouterKey = {
-  HOME: "/dang-nhap",
+  // Admin keys
+  ADMIN_LOGIN: "ADMIN_LOGIN",
+  ADMIN_HOME: "ADMIN_HOME",
+  ADMIN_QUAN_LY_NGUOI_DUNG: "ADMIN_QUAN_LY_NGUOI_DUNG",
+  ADMIN_QUAN_LY_VAI_TRO: "ADMIN_QUAN_LY_VAI_TRO",
+  ADMIN_QUAN_LY_PHAN_QUYEN: "ADMIN_QUAN_LY_PHAN_QUYEN",
+  ADMIN_QUAN_LY_COMBO_SAN_PHAM: "ADMIN_QUAN_LY_COMBO_SAN_PHAM",
+  ADMIN_QUAN_LY_TAI_KHOAN_SAN_PHAM: "ADMIN_QUAN_LY_TAI_KHOAN_SAN_PHAM",
+  ADMIN_QUAN_LY_DANH_MUC_SAN_PHAM: "ADMIN_QUAN_LY_DANH_MUC_SAN_PHAM",
+  ADMIN_QUAN_LY_SAN_PHAM: "ADMIN_QUAN_LY_SAN_PHAM",
+  ADMIN_QUAN_LY_PHIEU_GIAM_GIA: "ADMIN_QUAN_LY_PHIEU_GIAM_GIA",
 
-  QUAN_LY_HE_THONG: "/he-thong/",
-  QUAN_LY_BAN_HANG: "/ban-hang/",
-};
+  // Client keys
+  CLIENT_HOME: "CLIENT_HOME",
+  CLIENT_PRODUCTS: "CLIENT_PRODUCTS",
+  CLIENT_CHECKOUT: "CLIENT_CHECKOUT",
+  CLIENT_LOGIN: "CLIENT_LOGIN",
+  CLIENT_ABOUT: "CLIENT_ABOUT",
+  CLIENT_CONTACT: "CLIENT_CONTACT",
+} as const;

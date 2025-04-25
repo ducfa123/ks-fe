@@ -116,7 +116,7 @@ export const VaiTroPage = () => {
   };
 
   const handleView = row => {
-    navigate(RouterLink.QUAN_LY_PHAN_QUYEN.replace(":vaiTroId", row?._id));
+    navigate(RouterLink.ADMIN_QUAN_LY_PHAN_QUYEN.replace(":vaiTroId", row?._id));
   };
 
   const rowsRender = addActionToRows(

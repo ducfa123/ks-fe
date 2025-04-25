@@ -144,7 +144,9 @@ export const LoginPage = () => {
     }
   };
 
-  if (isLogin) return <Navigate to={RouterLink.HOME} />;
+  console.log({ isLogin });
+
+  if (isLogin) return <Navigate to={RouterLink.ADMIN_HOME} />;
 
   return (
     <Box

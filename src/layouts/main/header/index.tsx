@@ -12,7 +12,7 @@ import {
   Menu,
   MenuItem,
   Toolbar,
-  Tooltip
+  Tooltip,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import React, { useEffect, useState } from "react";
@@ -31,6 +31,7 @@ import {
 } from "../../../redux/global/global.slice";
 import { APIServices } from "../../../utils";
 import { formatNumberVND } from "../../../utils/common";
+import { RouterLink } from "../../../routers/routers";
 
 const StyledAppBar = styled(AppBar)({
   background: "#FCFDFE",
@@ -79,7 +80,7 @@ const HeaderCustom: React.FC = () => {
   const [openTelegramModal, setOpenTelegramModal] = useState(false);
   const [telegramConnected, setTelegramConnected] = useState(false);
   const { collapsed } = useAppSelector((state) => state.global);
-  
+
   const setCollapse = (value: boolean) => dispatch(setCollapsed(value));
   const router = useNavigate();
 
@@ -98,7 +99,7 @@ const HeaderCustom: React.FC = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    navigate(RouterLink.ADMIN_LOGIN);
   };
 
   const handleOpenChangePassword = () => {
