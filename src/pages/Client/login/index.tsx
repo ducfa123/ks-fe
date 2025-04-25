@@ -2,12 +2,9 @@ import { Box, Button, Container, TextField, Typography, Paper, Grid, Link } from
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RouterLink } from "../../../routers/routers";
-import { useAuth } from "../../../contexts/AuthContext";
-import { clientLogin } from "../../../services/auth";
 
 const ClientLoginPage = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,19 +15,19 @@ const ClientLoginPage = () => {
     setLoading(true);
     setError("");
     
-    try {
-      const response = await clientLogin(username, password);
-      if (response.success) {
-        await login(response.data.token);
-        navigate(RouterLink.CLIENT_HOME);
-      } else {
-        setError(response.message || "Đăng nhập thất bại");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi đăng nhập");
-    } finally {
-      setLoading(false);
-    }
+    // try {
+    //   const response = await clientLogin(username, password);
+    //   if (response.success) {
+    //     await login(response.data.token);
+    //     navigate(RouterLink.CLIENT_HOME);
+    //   } else {
+    //     setError(response.message || "Đăng nhập thất bại");
+    //   }
+    // } catch (err) {
+    //   setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi đăng nhập");
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   return (

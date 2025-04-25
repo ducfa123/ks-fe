@@ -17,21 +17,27 @@ import {
   FormControl,
 } from "@mui/material";
 
-const steps = ["Thông tin giao hàng", "Phương thức thanh toán", "Xác nhận đơn hàng"];
+const steps = [
+  "Thông tin giao hàng",
+  "Phương thức thanh toán",
+  "Xác nhận đơn hàng",
+];
 
 const cartItems = [
   {
     id: 1,
     name: "iPhone 13 Pro Max",
     price: "29.990.000đ",
-    image: "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     quantity: 1,
   },
   {
     id: 2,
     name: "MacBook Pro M1",
     price: "39.990.000đ",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     quantity: 1,
   },
 ];
@@ -49,7 +55,7 @@ export const ClientCheckoutPage = () => {
   };
 
   const total = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item: any) => sum + item?.price * item.quantity,
     0
   );
 
@@ -95,11 +101,15 @@ export const ClientCheckoutPage = () => {
               </Box>
             ))}
             <Divider sx={{ my: 2 }} />
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Tạm tính</Typography>
               <Typography>{total.toLocaleString()}đ</Typography>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Phí vận chuyển</Typography>
               <Typography>30,000đ</Typography>
             </Box>
@@ -255,4 +265,4 @@ export const ClientCheckoutPage = () => {
       </Grid>
     </Container>
   );
-}; 
+};
