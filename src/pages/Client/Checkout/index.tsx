@@ -23,16 +23,16 @@ const cartItems = [
   {
     id: 1,
     name: "iPhone 13 Pro Max",
-    price: 29990000,
+    price: "29.990.000đ",
+    image: "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     quantity: 1,
-    image: "/products/iphone.jpg",
   },
   {
     id: 2,
-    name: "AirPods Pro",
-    price: 5990000,
+    name: "MacBook Pro M1",
+    price: "39.990.000đ",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     quantity: 1,
-    image: "/products/airpods.jpg",
   },
 ];
 

@@ -22,36 +22,35 @@ const getPermission = () => {
   });
 };
 
-// const checkToken = () => {
-//   return api.makeAuthRequest({
-//     url: "authentication/check-token",
-//     method: "GET",
-//     data: {},
-//     },
-//   });
-// };
-
 const checkToken = () => {
-  return new Promise((resolve) => {
-    const fakeResponse = {
-      data: {
-        token: "fakeAccessToken", 
-        user: { 
-          _id: "fakeUserId",
-          ho_ten: "Người dùng thử",
-          tai_khoan: "testuser", 
-          vai_tro: "admin",
-          phong_ban: "IT",
-          so_du: 1000,
-        },
-      },
-    };
-
-    setTimeout(() => {
-      resolve(fakeResponse);
-    }, 10); 
+  return api.makeAuthRequest({
+    url: "authentication/check-token",
+    method: "GET",
+    data: {},
   });
 };
+
+// const checkToken = () => {
+//   return new Promise((resolve) => {
+//     const fakeResponse = {
+//       data: {
+//         token: "fakeAccessToken",
+//         user: {
+//           _id: "fakeUserId",
+//           ho_ten: "Người dùng thử",
+//           tai_khoan: "testuser",
+//           vai_tro: "admin",
+//           phong_ban: "IT",
+//           so_du: 1000,
+//         },
+//       },
+//     };
+
+//     setTimeout(() => {
+//       resolve(fakeResponse);
+//     }, 10);
+//   });
+// };
 
 const changeMyPassword = (old_password = "", new_password = "") => {
   return api.makeAuthRequest({

@@ -1,38 +1,37 @@
-import React from "react";
 import {
+  AppBar,
   Box,
   Container,
-  AppBar,
-  Toolbar,
   IconButton,
-  Badge,
-  Button,
+  Toolbar,
+  Typography,
   Drawer,
   List,
   ListItem,
   ListItemText,
-  Divider,
-  Typography,
+  Button,
 } from "@mui/material";
 import {
-  ShoppingCart,
-  Menu,
-  Search,
-  Person,
+  Menu as MenuIcon,
+  Search as SearchIcon,
+  Person as PersonIcon,
+  ShoppingCart as ShoppingCartIcon,
   Facebook,
   Instagram,
   Twitter,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { RouterLink } from "../routers/routers";
+import logo from "../assets/images/logo.jpg";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
 }
 
-export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
+export const ClientLayout = ({ children }: ClientLayoutProps) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const menuItems = [
     { text: "Trang chủ", path: RouterLink.CLIENT_HOME },
@@ -41,101 +40,136 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
     { text: "Liên hệ", path: RouterLink.CLIENT_CONTACT },
   ];
 
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const drawer = (
+    <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px",
+        }}
+      >
+        <Box component="img" src={logo} alt="Intx" sx={{ height: "40px" }} />
+      </Box>
+      <List>
+        {menuItems.map((item) => (
+          <ListItem
+            key={item.text}
+            onClick={() => navigate(item.path)}
+            sx={{ cursor: "pointer" }}
+          >
+            <ListItemText primary={item.text} />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <AppBar position="sticky" color="default" elevation={1}>
+      <AppBar
+        position="fixed"
+        color="default"
+        elevation={1}
+        sx={{ 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: "white",
+          color: "text.primary"
+        }}
+      >
         <Container maxWidth="lg">
-          <Toolbar sx={{ justifyContent: "space-between" }}>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                onClick={() => setDrawerOpen(true)}
-                sx={{ mr: 2, display: { sm: "none" } }}
-              >
-                <Menu />
-              </IconButton>
-              <Box
-                component="img"
-                src="/assets/images/logo.png"
-                alt="Logo"
-                sx={{ height: 40, cursor: "pointer" }}
-                onClick={() => navigate(RouterLink.CLIENT_HOME)}
-              />
-            </Box>
-
-            <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 2 }}>
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { md: "none" } }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Box
+              component="img"
+              src={logo}
+              alt="Intx"
+              sx={{ height: 40, mr: 2, cursor: "pointer" }}
+              onClick={() => navigate(RouterLink.CLIENT_HOME)}
+            />
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                flexGrow: 1,
+                display: { xs: "none", sm: "block" },
+                cursor: "pointer",
+              }}
+              onClick={() => navigate(RouterLink.CLIENT_HOME)}
+            >
+              Intx
+            </Typography>
+            <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
               {menuItems.map((item) => (
                 <Button
                   key={item.text}
-                  color="inherit"
                   onClick={() => navigate(item.path)}
+                  sx={{ my: 2, color: "text.primary", display: "block" }}
                 >
                   {item.text}
                 </Button>
               ))}
             </Box>
-
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <IconButton color="inherit">
-                <Search />
+                <SearchIcon />
               </IconButton>
-              <IconButton color="inherit" onClick={() => navigate(RouterLink.CLIENT_LOGIN)}>
-                <Person />
+              <IconButton color="inherit">
+                <PersonIcon />
               </IconButton>
-              <IconButton color="inherit" onClick={() => navigate(RouterLink.CLIENT_CHECKOUT)}>
-                <Badge badgeContent={4} color="error">
-                  <ShoppingCart />
-                </Badge>
+              <IconButton color="inherit">
+                <ShoppingCartIcon />
               </IconButton>
             </Box>
           </Toolbar>
         </Container>
       </AppBar>
 
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      >
-        <Box sx={{ width: 250 }}>
-          <List>
-            {menuItems.map((item) => (
-              <ListItem
-                key={item.text}
-                onClick={() => {
-                  navigate(item.path);
-                  setDrawerOpen(false);
-                }}
-                sx={{ cursor: "pointer" }}
-              >
-                <ListItemText primary={item.text} />
-              </ListItem>
-            ))}
-          </List>
-          <Divider />
-          <List>
-            <ListItem
-              onClick={() => navigate(RouterLink.CLIENT_LOGIN)}
-              sx={{ cursor: "pointer" }}
-            >
-              <ListItemText primary="Đăng nhập" />
-            </ListItem>
-          </List>
-        </Box>
-      </Drawer>
+      <Box component="nav">
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true,
+          }}
+          sx={{
+            display: { xs: "block", md: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: 240,
+              top: 64,
+            },
+          }}
+        >
+          {drawer}
+        </Drawer>
+      </Box>
 
-      <Box component="main" sx={{ flexGrow: 1 }}>
+      <Box component="main" sx={{ flexGrow: 1, mt: 8 }}>
         {children}
       </Box>
 
       <Box
         component="footer"
         sx={{
-          bgcolor: "background.paper",
           py: 3,
+          px: 2,
           mt: "auto",
+          backgroundColor: (theme) => theme.palette.grey[200],
         }}
       >
         <Container maxWidth="lg">
@@ -187,7 +221,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
             align="center"
             sx={{ mt: 2 }}
           >
-            © {new Date().getFullYear()} Your Company. All rights reserved.
+            © {new Date().getFullYear()} Intx. All rights reserved.
           </Typography>
         </Container>
       </Box>

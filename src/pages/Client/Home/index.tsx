@@ -9,42 +9,43 @@ import {
   CardContent,
   CardMedia,
   Rating,
-  Chip,
+  Link,
 } from "@mui/material";
-import { ClientLayout } from "../../../layouts/ClientLayout";
+import { useNavigate } from "react-router-dom";
+import { RouterLink } from "../../../routers/routers";
 
 const featuredProducts = [
   {
     id: 1,
     name: "iPhone 13 Pro Max",
-    price: 29990000,
-    image: "/products/iphone.jpg",
-    rating: 4.5,
+    price: "29.990.000đ",
+    image: "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    rating: 4.8,
     category: "Điện thoại",
   },
   {
     id: 2,
     name: "MacBook Pro M1",
-    price: 39990000,
-    image: "/products/macbook.jpg",
-    rating: 4.8,
+    price: "39.990.000đ",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    rating: 4.9,
     category: "Laptop",
   },
   {
     id: 3,
-    name: "iPad Pro 2022",
-    price: 24990000,
-    image: "/products/ipad.jpg",
-    rating: 4.6,
-    category: "Máy tính bảng",
+    name: "AirPods Pro",
+    price: "6.990.000đ",
+    image: "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    rating: 4.7,
+    category: "Phụ kiện",
   },
   {
     id: 4,
-    name: "AirPods Pro",
-    price: 5990000,
-    image: "/products/airpods.jpg",
-    rating: 4.7,
-    category: "Phụ kiện",
+    name: "Apple Watch Series 7",
+    price: "12.990.000đ",
+    image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    rating: 4.6,
+    category: "Đồng hồ",
   },
 ];
 
@@ -56,95 +57,108 @@ const categories = [
 ];
 
 export const ClientHomePage = () => {
+  const navigate = useNavigate();
+
   return (
-    <ClientLayout>
-      {/* Hero Section */}
+    <>
       <Box
         sx={{
-          backgroundImage: "url('/hero-bg.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          height: "500px",
-          display: "flex",
-          alignItems: "center",
+          background: "linear-gradient(135deg, #098DEE 0%, #63B3ED 100%)",
+          py: 15,
           color: "white",
-          position: "relative",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
-          },
         }}
       >
         <Container>
-          <Box sx={{ position: "relative", zIndex: 1 }}>
-            <Typography variant="h2" gutterBottom>
-              Khám phá thế giới công nghệ
-            </Typography>
-            <Typography variant="h5" gutterBottom sx={{ mb: 4 }}>
-              Sản phẩm chất lượng với giá cả phải chăng
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{ mr: 2 }}
-            >
-              Mua ngay
-            </Button>
-            <Button variant="outlined" color="inherit" size="large">
-              Tìm hiểu thêm
-            </Button>
-          </Box>
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Typography variant="h2" sx={{ mb: 2, fontWeight: "bold" }}>
+                Chào mừng đến với IntX shop
+              </Typography>
+              <Typography variant="h5" sx={{ mb: 4 }}>
+                Nơi cung cấp các sản phẩm công nghệ chất lượng cao với giá cả phải chăng
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                sx={{ 
+                  bgcolor: "#098DEE", 
+                  "&:hover": { bgcolor: "#2B6CB0" },
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2
+                }}
+                onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
+              >
+                Mua sắm ngay
+              </Button>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box
+                component="img"
+                src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                alt="Hero"
+                sx={{ width: "100%", borderRadius: 2, boxShadow: 3 }}
+              />
+            </Grid>
+          </Grid>
         </Container>
       </Box>
 
-      {/* Categories Section */}
-      <Container sx={{ py: 8 }}>
-        <Typography variant="h4" gutterBottom align="center">
-          Danh mục sản phẩm
-        </Typography>
-        <Grid container spacing={4} sx={{ mt: 2 }}>
-          {categories.map((category) => (
-            <Grid item xs={12} sm={6} md={3} key={category.name}>
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  cursor: "pointer",
-                  transition: "transform 0.2s",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                  },
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={category.image}
-                  alt={category.name}
-                />
-                <CardContent sx={{ flexGrow: 1, textAlign: "center" }}>
-                  <Typography variant="h6">{category.name}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
-      {/* Featured Products */}
-      <Box sx={{ bgcolor: "background.default", py: 8 }}>
+      {/* Features Section */}
+      <Box sx={{ py: 8, bgcolor: "#f5f5f5" }}>
         <Container>
-          <Typography variant="h4" gutterBottom align="center">
-            Sản phẩm nổi bật
-          </Typography>
-          <Grid container spacing={4} sx={{ mt: 2 }}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="h4" sx={{ mb: 2, color: "#098DEE" }}>
+                  Giao hàng nhanh
+                </Typography>
+                <Typography>
+                  Giao hàng toàn quốc trong 24h với đơn hàng trên 1 triệu đồng
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="h4" sx={{ mb: 2, color: "#098DEE" }}>
+                  Bảo hành dài hạn
+                </Typography>
+                <Typography>
+                  Bảo hành 12 tháng cho tất cả sản phẩm chính hãng
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box sx={{ textAlign: "center" }}>
+                <Typography variant="h4" sx={{ mb: 2, color: "#098DEE" }}>
+                  Hỗ trợ 24/7
+                </Typography>
+                <Typography>
+                  Đội ngũ hỗ trợ luôn sẵn sàng giải đáp mọi thắc mắc
+                </Typography>
+              </Box>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Featured Products Section */}
+      <Box sx={{ py: 8 }}>
+        <Container>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 4 }}>
+            <Typography variant="h4" sx={{ fontWeight: "bold", color: "#098DEE" }}>
+              Sản phẩm nổi bật
+            </Typography>
+            <Link
+              component="button"
+              variant="body1"
+              onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
+              sx={{ color: "#098DEE", cursor: "pointer", fontWeight: "bold" }}
+            >
+              Xem tất cả
+            </Link>
+          </Box>
+          <Grid container spacing={4}>
             {featuredProducts.map((product) => (
               <Grid item xs={12} sm={6} md={3} key={product.id}>
                 <Card
@@ -153,30 +167,36 @@ export const ClientHomePage = () => {
                     display: "flex",
                     flexDirection: "column",
                     cursor: "pointer",
-                    transition: "transform 0.2s",
+                    transition: "transform 0.2s, box-shadow 0.2s",
                     "&:hover": {
-                      transform: "scale(1.05)",
+                      transform: "translateY(-4px)",
+                      boxShadow: 3,
                     },
                   }}
+                  onClick={() => navigate(`${RouterLink.CLIENT_PRODUCTS}/${product.id}`)}
                 >
                   <CardMedia
                     component="img"
                     height="200"
                     image={product.image}
                     alt={product.name}
+                    sx={{ objectFit: "contain", p: 2 }}
                   />
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Chip
-                      label={product.category}
-                      size="small"
-                      sx={{ mb: 1 }}
-                    />
-                    <Typography variant="h6" gutterBottom>
+                    <Typography gutterBottom variant="h6" component="div">
                       {product.name}
                     </Typography>
-                    <Rating value={product.rating} readOnly sx={{ mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {product.category}
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                      <Rating value={product.rating} precision={0.1} readOnly />
+                      <Typography variant="body2" sx={{ ml: 1 }}>
+                        ({product.rating})
+                      </Typography>
+                    </Box>
                     <Typography variant="h6" color="primary">
-                      {product.price.toLocaleString()}đ
+                      {product.price}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -186,41 +206,38 @@ export const ClientHomePage = () => {
         </Container>
       </Box>
 
-      {/* Features Section */}
-      <Container sx={{ py: 8 }}>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="h5" gutterBottom>
-                Giao hàng nhanh chóng
-              </Typography>
-              <Typography color="text.secondary">
-                Giao hàng toàn quốc trong 24h
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="h5" gutterBottom>
-                Bảo hành chính hãng
-              </Typography>
-              <Typography color="text.secondary">
-                Bảo hành 12 tháng tại các trung tâm
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="h5" gutterBottom>
-                Hỗ trợ 24/7
-              </Typography>
-              <Typography color="text.secondary">
-                Đội ngũ hỗ trợ nhiệt tình
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Container>
-    </ClientLayout>
+      {/* CTA Section */}
+      <Box
+        sx={{
+          background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+          py: 8,
+        }}
+      >
+        <Container>
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: "bold", color: "#098DEE" }}>
+              Bạn đã sẵn sàng mua sắm?
+            </Typography>
+            <Typography variant="h6" sx={{ mb: 4 }}>
+              Khám phá ngay bộ sưu tập sản phẩm mới nhất của chúng tôi
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              sx={{ 
+                bgcolor: "#098DEE", 
+                "&:hover": { bgcolor: "#2B6CB0" },
+                px: 4,
+                py: 1.5,
+                borderRadius: 2
+              }}
+              onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
+            >
+              Xem tất cả sản phẩm
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+    </>
   );
-}; 
+};

@@ -42,6 +42,7 @@ const ProtectedOutlet: FC<RouterProps> = ({ requireLogin = false }) => {
       try {
         const ans: any = await APIServices.Auth.checkToken();
         const { data: user } = ans;
+
         dispatch(
           updateInfo({
             _id: user?._id,
@@ -49,7 +50,7 @@ const ProtectedOutlet: FC<RouterProps> = ({ requireLogin = false }) => {
             tai_khoan: user?.tai_khoan,
             vai_tro: user?.vai_tro,
             phong_ban: user?.phong_ban,
-            so_du: user?.so_du
+            so_du: user?.so_du,
           })
         );
       } catch {

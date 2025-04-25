@@ -30,9 +30,9 @@ const MainRoutes = [
       </ClientLayout>
     ),
     children: [
-      { path: "", element: <Navigate to={RouterLink.CLIENT_HOME} replace /> },
+      // { path: "", element: <Navigate to={RouterLink.CLIENT_HOME} replace /> },
       {
-        path: RouterLink.CLIENT_HOME.replace("/", ""),
+        path: RouterLink.CLIENT_HOME,
         element: <ClientHomePage />,
       },
       {
