@@ -1,4 +1,4 @@
-import { Box } from "@mui/system";
+import { Box, Stack } from "@mui/system";
 import * as styles from "./styles";
 import { useEffect, useState } from "react";
 import { APIServices } from "../../../utils";
@@ -8,10 +8,11 @@ import { columnForms, columns } from "./types";
 import { TShowConfirm } from "../../../components";
 import { useNotifier } from "../../../provider/NotificationProvider";
 import TSearchText from "../../../components/tSearchText";
-import { Button } from "@mui/material";
+import { Button, Chip, Tooltip } from "@mui/material";
 import { IoAddCircle } from "react-icons/io5";
 import { TFormModal } from "../../../components/tFormModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { formatNumberVND } from "../../../utils/common";
 
 export const ComboSanPhamPage = () => {
   const [entities, setEntities] = useState<any>([]);
@@ -139,6 +140,43 @@ export const ComboSanPhamPage = () => {
     ],
     "flex-end"
   );
+
+  rowsRender = addFieldToItems(rowsRender, "gia_combo_text", (entity: any) => {
+    if (entity?.gia_combo) return formatNumberVND(entity?.gia_combo);
+    return "";
+  });
+
+  rowsRender = addFieldToItems(rowsRender, "san_pham_text", (entity: any) => {
+    const products = entity?.danh_sach_san_pham_detail || [];
+    if (products.length === 0) {
+      return (
+        <Box sx={{ color: "text.secondary", fontStyle: "italic" }}>
+          Không có sản phẩm
+        </Box>
+      );
+    }
+    return (
+      <Stack spacing={1} flexWrap="wrap">
+        {products.map((sp: any) => (
+          <Box>
+            <Tooltip
+              title={sp?.ten_full || sp?.ten}
+              key={sp?._id}
+              sx={{ padding: "5px" }}
+            >
+              <Chip
+                label={sp?.ten}
+                color="primary"
+                variant="outlined"
+                size="small"
+                sx={{ mb: 0.5 }}
+              />
+            </Tooltip>
+          </Box>
+        ))}
+      </Stack>
+    );
+  });
 
   // form
   const finalColumnForm = columnForms;

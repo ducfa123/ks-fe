@@ -2,7 +2,9 @@ import { Column } from "../../../components/tTable/types";
 import { APIServices } from "../../../utils";
 
 export const columns: Array<Column> = [
-  { id: "ten", label: "Tên danh mục", minWidth: 150 },
+  { id: "ten", label: "Tên combo", minWidth: 150 },
+  { id: "san_pham_text", label: "Danh sách sản phẩm", minWidth: 150 },
+  { id: "gia_combo_text", label: "Giá combo", minWidth: 150 },
   { id: "mo_ta", label: "Mô tả", minWidth: 150 },
   { id: "trang_thai_text", label: "Trạng thái", minWidth: 150 },
   { id: "actions", label: "Hành động", minWidth: 200, align: "right" },

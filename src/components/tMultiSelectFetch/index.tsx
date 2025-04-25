@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  Autocomplete,
   Checkbox,
-  ListItemText,
-  OutlinedInput,
   CircularProgress,
+  FormControl,
   FormHelperText,
   TextField,
+  Chip,
 } from "@mui/material";
 
 interface OptionType {
@@ -25,6 +22,7 @@ interface TMultiSelectFetchProps {
   onChange: (val: string[]) => void;
   error?: boolean;
   helperText?: string;
+  placeholder?: string;
 }
 
 export const TMultiSelectFetch: React.FC<TMultiSelectFetchProps> = ({
@@ -35,67 +33,91 @@ export const TMultiSelectFetch: React.FC<TMultiSelectFetchProps> = ({
   onChange,
   error,
   helperText,
+  placeholder = "Tìm kiếm...",
 }) => {
   const [options, setOptions] = useState<OptionType[]>(defaultOptions);
   const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [inputValue, setInputValue] = useState("");
+
+  // Map value to option objects for Autocomplete
+  const selectedOptions = useMemo(
+    () => (options ? options?.filter((opt) => value?.includes(opt.value)) : []),
+    [options, value]
+  );
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const res = await fetchOptions(searchText);
-      setOptions(res);
-      setLoading(false);
+    let active = true;
+    setLoading(true);
+    fetchOptions(inputValue).then((res) => {
+      if (active) {
+        setOptions(res);
+        setLoading(false);
+      }
+    });
+    return () => {
+      active = false;
     };
-    load();
-  }, [searchText]);
+  }, [inputValue, fetchOptions]);
 
   return (
     <FormControl fullWidth error={error}>
-      <InputLabel>{label}</InputLabel>
-      <Select
+      <Autocomplete
         multiple
-        value={Array.isArray(value) ? value : []}
-        onChange={(e) => onChange(e.target.value as string[])}
-        input={<OutlinedInput label={label} />}
-        renderValue={(selected) =>
-          options
-            .filter((opt) => selected.includes(opt.value))
-            .map((opt) => opt.label)
-            .join(", ")
-        }
-        MenuProps={{
-          PaperProps: {
-            style: { maxHeight: 300 },
-          },
-        }}
-      >
-        <MenuItem disableRipple disableTouchRipple disableGutters>
+        disableCloseOnSelect
+        options={options}
+        getOptionLabel={(option) => option.label}
+        value={selectedOptions}
+        onChange={(_, newValue) => onChange(newValue.map((opt) => opt.value))}
+        inputValue={inputValue}
+        onInputChange={(_, newInputValue) => setInputValue(newInputValue)}
+        loading={loading}
+        isOptionEqualToValue={(option, val) => option.value === val.value}
+        renderInput={(params) => (
           <TextField
-            autoFocus
-            placeholder="Tìm kiếm..."
-            fullWidth
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            variant="standard"
+            {...params}
+            label={label}
+            placeholder={placeholder}
+            variant="outlined"
+            error={error}
+            helperText={helperText}
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {loading ? (
+                    <CircularProgress color="inherit" size={18} />
+                  ) : null}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            }}
           />
-        </MenuItem>
-        {loading ? (
-          <MenuItem disabled>
-            <CircularProgress size={20} />
-          </MenuItem>
-        ) : options.length > 0 ? (
-          options.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              <Checkbox checked={value?.includes(option.value)} />
-              <ListItemText primary={option.label} />
-            </MenuItem>
-          ))
-        ) : (
-          <MenuItem disabled>Không có dữ liệu</MenuItem>
         )}
-      </Select>
-      {helperText && <FormHelperText>{helperText}</FormHelperText>}
+        renderOption={(props, option, { selected }) => (
+          <li {...props} key={option.value}>
+            <Checkbox
+              style={{ marginRight: 8 }}
+              checked={selected}
+              color="primary"
+            />
+            {option.label}
+          </li>
+        )}
+        renderTags={(tagValue, getTagProps) =>
+          tagValue.map((option, index) => (
+            <Chip
+              label={option.label}
+              {...getTagProps({ index })}
+              key={option.value}
+              size="small"
+              color="primary"
+              style={{ margin: 2 }}
+            />
+          ))
+        }
+        noOptionsText="Không có dữ liệu"
+      />
+      {error && helperText && <FormHelperText>{helperText}</FormHelperText>}
     </FormControl>
   );
 };
