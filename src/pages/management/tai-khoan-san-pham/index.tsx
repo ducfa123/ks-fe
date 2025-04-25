@@ -12,10 +12,8 @@ import { Button } from "@mui/material";
 import { IoAddCircle } from "react-icons/io5";
 import { TFormModal } from "../../../components/tFormModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { formatNumberVND } from "../../../utils/common";
-import { TSanPhamImageViewer } from "../../../components/tSanPhamImageViewer";
 
-export const SanPhamPage = () => {
+export const TaiKhoanSanPhamPage = () => {
   const [entities, setEntities] = useState<any>([]);
   const [currentEntity, setCurrentEntity] = useState<any | null>(null);
 
@@ -39,7 +37,7 @@ export const SanPhamPage = () => {
     requestText = ""
   ) => {
     try {
-      const request = await APIServices.SanPhamService.getListEntity(
+      const request = await APIServices.TaiKhoanSanPhamService.getListEntity(
         requestIndex,
         requestSize,
         requestText
@@ -72,11 +70,11 @@ export const SanPhamPage = () => {
 
   const handleRemove = async (row) => {
     try {
-      await APIServices.SanPhamService.removeEntity(row?._id);
+      await APIServices.TaiKhoanSanPhamService.removeEntity(row?._id);
 
-      success("Xoá sản phẩm thành công");
+      success("Xoá tài khoản sản phẩm thành công");
     } catch {
-      error("Xoá sản phẩm thất bại");
+      error("Xoá tài khoản sản phẩm thất bại");
     } finally {
       setModalConfirmRemoveState(false);
       loadData();
@@ -98,34 +96,23 @@ export const SanPhamPage = () => {
 
     try {
       if (data._id) {
-        await APIServices.SanPhamService.updateEntity(data._id, data);
-        success("Cập nhật sản phẩm thành công");
+        await APIServices.TaiKhoanSanPhamService.updateEntity(data._id, data);
+        success("Cập nhật tài khoản sản phẩm thành công");
       } else {
-        await APIServices.SanPhamService.insertEntity(data);
-        success("Thêm sản phẩm thành công");
+        await APIServices.TaiKhoanSanPhamService.insertEntity(data);
+        success("Thêm tài khoản sản phẩm thành công");
       }
     } catch (ex) {
-      if (values._id) error("Cập nhật sản phẩm thất bại");
-      else error("Thêm sản phẩm thất bại");
+      if (values._id) error("Cập nhật tài khoản sản phẩm thất bại");
+      else error("Thêm tài khoản sản phẩm thất bại");
     } finally {
       setModalOpen(false);
       loadData();
     }
   };
 
-  let rowsRender = entities;
-  rowsRender = addFieldToItems(rowsRender, "danh_muc_text", (entity: any) => {
-    return entity?.danh_muc_detail?.ten;
-  });
-  rowsRender = addFieldToItems(rowsRender, "hinh_anh_show", (entity: any) => {
-    if (!entity?.hinh_anh) return null;
-
-    return <TSanPhamImageViewer images={entity.hinh_anh} />;
-  });
-  rowsRender = addFieldToItems(rowsRender, "gia_text", (entity: any) => {
-    if (!entity?.gia) return "";
-
-    return formatNumberVND(entity?.gia);
+  let rowsRender = addFieldToItems(entities, "san_pham_text", (item: any) => {
+    return item?.san_pham_detail?.ten;
   });
 
   rowsRender = addActionToRows(
@@ -195,7 +182,7 @@ export const SanPhamPage = () => {
       <TShowConfirm
         visible={modalConfirmRemove}
         title={"Thông báo"}
-        message={`Bạn có chắc chắn xoá sản phẩm [${currentEntity?.ten}] không?`}
+        message={`Bạn có chắc chắn xoá tài khoản sản phẩm này không?`}
         onConfirm={() => {
           setModalConfirmRemoveState(false);
           if (currentEntity) handleRemove(currentEntity);

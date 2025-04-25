@@ -1,9 +1,10 @@
 import { RouterKey, RouterLink } from "../../../routers/routers";
 import { SideMenuItem, SystemAction, SystemFeatures } from "../../../types";
 import { IoGift, IoPeople, IoSettings } from "react-icons/io5";
-import { RiDashboardLine } from "react-icons/ri";
+import { RiDashboardLine, RiListCheck3 } from "react-icons/ri";
 import {
   MdAdminPanelSettings,
+  MdOutlineAccountTree,
   MdOutlineProductionQuantityLimits,
 } from "react-icons/md";
 import { CiShop } from "react-icons/ci";
@@ -47,6 +48,24 @@ export const menus: Array<SideMenuItem> = [
         text: "Giảm giá",
         children: [],
         url: RouterLink.QUAN_LY_PHIEU_GIAM_GIA,
+        module: SystemFeatures.QuanLyPhieuGiamGia,
+        action: [SystemAction.View, SystemAction.Edit],
+      },
+      {
+        key: RouterLink.QUAN_LY_COMBO_SAN_PHAM,
+        icon: <RiListCheck3 />,
+        text: "Combo sản phẩm",
+        children: [],
+        url: RouterLink.QUAN_LY_COMBO_SAN_PHAM,
+        module: SystemFeatures.QuanLyPhieuGiamGia,
+        action: [SystemAction.View, SystemAction.Edit],
+      },
+      {
+        key: RouterLink.QUAN_LY_TAI_KHOAN_SAN_PHAM,
+        icon: <MdOutlineAccountTree />,
+        text: "Tài khoản sản phẩm",
+        children: [],
+        url: RouterLink.QUAN_LY_TAI_KHOAN_SAN_PHAM,
         module: SystemFeatures.QuanLyPhieuGiamGia,
         action: [SystemAction.View, SystemAction.Edit],
       },

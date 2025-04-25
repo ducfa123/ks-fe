@@ -7,7 +7,6 @@ interface Props {
 
 export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
   const [index, setIndex] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
   const [isImageHovered, setIsImageHovered] = useState(false);
 
   useEffect(() => {
@@ -48,12 +47,15 @@ export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
                 fontSize: 20,
                 transition: "all 0.2s ease",
                 zIndex: 1,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.95)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.8)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1)";
               }}
             >
               <FaChevronLeft />
@@ -77,12 +79,15 @@ export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
                 fontSize: 20,
                 transition: "all 0.2s ease",
                 zIndex: 1,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.95)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1.1)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "rgba(255,255,255,0.8)";
+                e.currentTarget.style.transform = "translateY(-50%) scale(1)";
               }}
             >
               <FaChevronRight />
@@ -93,8 +98,10 @@ export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
           style={{
             position: "relative",
             cursor: "pointer",
+            borderRadius: 12,
+            overflow: "hidden",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
           }}
-          onClick={() => setIsOpen(true)}
           onMouseEnter={() => setIsImageHovered(true)}
           onMouseLeave={() => setIsImageHovered(false)}
         >
@@ -105,42 +112,30 @@ export const TSanPhamImageViewer: React.FC<Props> = ({ images }) => {
               width: 300,
               maxHeight: 300,
               objectFit: "cover",
-              borderRadius: 12,
-              border: "1px solid #e0e0e0",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              transition: "transform 0.2s ease",
-              transform: isImageHovered ? "scale(1.02)" : "scale(1)",
+              transition: "transform 0.3s ease",
+              transform: isImageHovered ? "scale(1.05)" : "scale(1)",
             }}
           />
-          <div
-            style={{
-              position: "absolute",
-              bottom: 12,
-              right: 12,
-              background: "rgba(0,0,0,0.6)",
-              color: "white",
-              padding: "4px 8px",
-              borderRadius: 12,
-              fontSize: 14,
-            }}
-          >
-            {index + 1} / {images.length}
-          </div>
+          {images.length > 1 && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 12,
+                right: 12,
+                background: "rgba(0,0,0,0.6)",
+                color: "white",
+                padding: "4px 12px",
+                borderRadius: 16,
+                fontSize: 14,
+                fontWeight: 500,
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              {index + 1} / {images.length}
+            </div>
+          )}
         </div>
       </div>
-      {/* 
-      {isOpen && (
-        <Lightbox
-          mainSrc={images[index]}
-          nextSrc={images[(index + 1) % images.length]}
-          prevSrc={images[(index - 1 + images.length) % images.length]}
-          onCloseRequest={() => setIsOpen(false)}
-          onMovePrevRequest={handlePrev}
-          onMoveNextRequest={handleNext}
-          enableZoom={true}
-          imageTitle={`Ảnh ${index + 1} / ${images.length}`}
-        />
-      )} */}
     </div>
   );
 };

@@ -12,10 +12,8 @@ import { Button } from "@mui/material";
 import { IoAddCircle } from "react-icons/io5";
 import { TFormModal } from "../../../components/tFormModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { formatNumberVND } from "../../../utils/common";
-import { TSanPhamImageViewer } from "../../../components/tSanPhamImageViewer";
 
-export const SanPhamPage = () => {
+export const ComboSanPhamPage = () => {
   const [entities, setEntities] = useState<any>([]);
   const [currentEntity, setCurrentEntity] = useState<any | null>(null);
 
@@ -39,7 +37,7 @@ export const SanPhamPage = () => {
     requestText = ""
   ) => {
     try {
-      const request = await APIServices.SanPhamService.getListEntity(
+      const request = await APIServices.ComboSanPhamService.getListEntity(
         requestIndex,
         requestSize,
         requestText
@@ -72,11 +70,11 @@ export const SanPhamPage = () => {
 
   const handleRemove = async (row) => {
     try {
-      await APIServices.SanPhamService.removeEntity(row?._id);
+      await APIServices.ComboSanPhamService.removeEntity(row?._id);
 
-      success("Xoá sản phẩm thành công");
+      success("Xoá combo sản phẩm thành công");
     } catch {
-      error("Xoá sản phẩm thất bại");
+      error("Xoá combo sản phẩm thất bại");
     } finally {
       setModalConfirmRemoveState(false);
       loadData();
@@ -94,39 +92,34 @@ export const SanPhamPage = () => {
   };
 
   const handleSubmit = async (values: Record<string, any>) => {
-    const { actions: _, ...data } = values;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { actions: _, danh_sach_san_pham_detail: _a, ...data } = values;
 
     try {
       if (data._id) {
-        await APIServices.SanPhamService.updateEntity(data._id, data);
-        success("Cập nhật sản phẩm thành công");
+        await APIServices.ComboSanPhamService.updateEntity(data._id, data);
+        success("Cập nhật combo sản phẩm thành công");
       } else {
-        await APIServices.SanPhamService.insertEntity(data);
-        success("Thêm sản phẩm thành công");
+        await APIServices.ComboSanPhamService.insertEntity(data);
+        success("Thêm combo sản phẩm thành công");
       }
     } catch (ex) {
-      if (values._id) error("Cập nhật sản phẩm thất bại");
-      else error("Thêm sản phẩm thất bại");
+      if (values._id) error("Cập nhật combo sản phẩm thất bại");
+      else error("Thêm combo sản phẩm thất bại");
     } finally {
       setModalOpen(false);
       loadData();
     }
   };
 
-  let rowsRender = entities;
-  rowsRender = addFieldToItems(rowsRender, "danh_muc_text", (entity: any) => {
-    return entity?.danh_muc_detail?.ten;
-  });
-  rowsRender = addFieldToItems(rowsRender, "hinh_anh_show", (entity: any) => {
-    if (!entity?.hinh_anh) return null;
-
-    return <TSanPhamImageViewer images={entity.hinh_anh} />;
-  });
-  rowsRender = addFieldToItems(rowsRender, "gia_text", (entity: any) => {
-    if (!entity?.gia) return "";
-
-    return formatNumberVND(entity?.gia);
-  });
+  let rowsRender = addFieldToItems(
+    entities,
+    "trang_thai_text",
+    (entity: any) => {
+      if (entity.active === true) return "Đang cung cấp";
+      return "Tạm thời chưa cung cấp";
+    }
+  );
 
   rowsRender = addActionToRows(
     rowsRender,
@@ -187,7 +180,13 @@ export const SanPhamPage = () => {
       <TFormModal
         open={modalOpen}
         onClose={handleCloseModal}
-        columns={finalColumnForm}
+        columns={finalColumnForm?.filter(
+          (e) =>
+            !(
+              (e?.id == "mat_khau" || e?.id == "confirm_password") &&
+              editingData?._id
+            )
+        )}
         initialValues={editingData}
         onSubmit={handleSubmit}
       />
@@ -195,7 +194,7 @@ export const SanPhamPage = () => {
       <TShowConfirm
         visible={modalConfirmRemove}
         title={"Thông báo"}
-        message={`Bạn có chắc chắn xoá sản phẩm [${currentEntity?.ten}] không?`}
+        message={`Bạn có chắc chắn xoá combo sản phẩm [${currentEntity?.ten}] không?`}
         onConfirm={() => {
           setModalConfirmRemoveState(false);
           if (currentEntity) handleRemove(currentEntity);

@@ -282,13 +282,7 @@ export const NguoiDungPage = () => {
       <TFormModal
         open={modalOpen}
         onClose={handleCloseModal}
-        columns={finalColumnForm?.filter(
-          e =>
-            !(
-              (e?.id == "mat_khau" || e?.id == "confirm_password") &&
-              editingData?._id
-            )
-        )}
+        columns={finalColumnForm}
         initialValues={editingData}
         onSubmit={handleSubmit}
       />

@@ -4,3 +4,5 @@ export * from "./nguoi-dung";
 export * from "./danh-muc-san-pham";
 export * from "./san-pham";
 export * from "./phieu-giam-gia";
+export * from "./combo-san-pham";
+export * from "./tai-khoan-san-pham";

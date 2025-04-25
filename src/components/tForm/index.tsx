@@ -6,6 +6,9 @@ import {
   FormControlLabel,
   Switch,
   Typography,
+  Radio,
+  RadioGroup,
+  FormLabel,
 } from "@mui/material";
 import { FaSave, FaTimes } from "react-icons/fa";
 import { TAutoComplete } from "../tAutoComplete";
@@ -22,47 +25,78 @@ import { TCouponInput } from "../tCounponInput";
 import { TSelectDependent } from "../tSelectDependent";
 import { TStarRating } from "../tStarRating";
 import TSelectCustom from "../tSelectCustom";
-import { TSanPhamImageViewer } from "../tSanPhamImageViewer";
+import { TMultiSelectFetch } from "../tMultiSelectFetch";
+
+interface BaseFormData {
+  [key: string]: unknown;
+}
+
+interface FileData {
+  file: File;
+  preview: string | null;
+}
+
+interface FormValue {
+  string: string;
+  number: number;
+  boolean: boolean;
+  array: (string | number)[];
+  file: File;
+  fileArray: FileData[];
+}
+
+interface Option {
+  value: string | number;
+  label: string;
+}
 
 interface Column {
   id: string;
   label: string;
-  type?: string; // "select-coupon", "label", "coupon", "label-fetch", "text", "number", "email", "date", "textarea", "select", "date-time", "switch", "select-fetch", "hidden", "time", "multi-select"
+  type?:
+    | "select-coupon"
+    | "label"
+    | "coupon"
+    | "label-fetch"
+    | "text"
+    | "number"
+    | "email"
+    | "date"
+    | "textarea"
+    | "select"
+    | "date-time"
+    | "switch"
+    | "select-fetch"
+    | "hidden"
+    | "time"
+    | "multi-select"
+    | "radio"
+    | "multi-select-fetch";
   required?: boolean;
-  options?: {
-    value: string | number;
-    label?: string;
-    customLabel?: React.Component;
-  }[];
+  options?: Option[];
   format?: formatTime;
-  condition?: (formData: Record<string, any>) => boolean;
-  fetchOptions?: (
-    input: string
-  ) => Promise<{ value: string | number; label: string }[]>;
-  fetchLabel?: (formData: Record<string, any>) => Promise<string>; // label-fetch
-  callOnce?: boolean; //label-fetch
+  condition?: (formData: BaseFormData) => boolean;
+  fetchOptions?: (input: string) => Promise<Option[]>;
+  fetchLabel?: (formData: BaseFormData) => Promise<string>;
+  callOnce?: boolean;
   fetchCouponInfo?: (ma: string) => Promise<{
     loai: string;
     giam?: number;
     giam_phan_tram?: number;
     valid: boolean;
     message?: string;
-  }>; // 👈 API xác minh
-  parentId?: string; // 👈 field phụ thuộc select-dependent
-  getOptionsFromParent?: (
-    parentValue: any
-  ) => Promise<{ value: string | number; label: string }[]>;
-  defaultOptions?: (
-    formData: Record<string, any>
-  ) => { value: string | number; label: string }[];
-  onChange?: (e: any) => void;
-  validate?: (formData: Record<string, any>) => string | null;
+  }>;
+  parentId?: string;
+  getOptionsFromParent?: (parentValue: string | number) => Promise<Option[]>;
+  defaultOptions?: (formData: BaseFormData) => Option[];
+  onChange?: (value: FormValue[keyof FormValue]) => void;
+  validate?: (formData: BaseFormData) => string | null;
 }
 
 interface FormComponentProps {
   columns: Column[];
-  initialValues?: Record<string, any>;
-  onSubmit: (values: Record<string, any>) => void;
+  initialValues?: BaseFormData;
+  onSubmit: (values: BaseFormData) => void;
   onCancel: () => void;
 }
 
@@ -72,7 +106,7 @@ export const TForm: React.FC<FormComponentProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<BaseFormData>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [filteredColumns, setFilteredColumns] = useState<Column[]>([]);
 
@@ -160,12 +194,7 @@ export const TForm: React.FC<FormComponentProps> = ({
               formData[column.id].length > 0 ? (
                 <Box display="flex" flexDirection="column" gap={1}>
                   {formData[column.id].map((url: string, index: number) => (
-                    <Box
-                      key={index}
-                      display="flex"
-                      alignItems="center"
-                      gap={2}
-                    >
+                    <Box key={index} display="flex" alignItems="center" gap={2}>
                       <img
                         src={url}
                         alt={`img-${index}`}
@@ -670,6 +699,54 @@ export const TForm: React.FC<FormComponentProps> = ({
                   [`${column.id}_info`]: info,
                 }));
               }}
+            />
+          </FormControl>
+        );
+
+      case "radio":
+        return (
+          <FormControl fullWidth>
+            <FormLabel>{column.label}</FormLabel>
+            <RadioGroup
+              value={formData[column.id]}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  [column.id]: e.target.value,
+                });
+              }}
+            >
+              {column.options?.map((option) => (
+                <FormControlLabel
+                  key={option.value}
+                  value={option.value}
+                  control={<Radio />}
+                  label={option.label || option.value}
+                />
+              ))}
+            </RadioGroup>
+            {errors[column.id] && (
+              <Typography variant="caption" color="error">
+                {errors[column.id]}
+              </Typography>
+            )}
+          </FormControl>
+        );
+
+      case "multi-select-fetch":
+        return (
+          <FormControl fullWidth>
+            <TMultiSelectFetch
+              label={column.label}
+              fetchOptions={column.fetchOptions}
+              defaultOptions={column.defaultOptions}
+              value={formData[column.id]}
+              onChange={(val) => {
+                setFormData({ ...formData, [column.id]: val });
+              }}
+              error={!!errors[column.id]}
+              helperText={errors[column.id]}
+              formValue={formData}
             />
           </FormControl>
         );

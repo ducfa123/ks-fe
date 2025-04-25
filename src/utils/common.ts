@@ -87,3 +87,12 @@ export const buildFormData = (data: Record<string, any>): FormData => {
 
   return formData;
 };
+
+export const normalizeBooleans = (data: any) => {
+  const result = { ...data };
+  Object.keys(result).forEach((key) => {
+    if (result[key] === "true") result[key] = true;
+    else if (result[key] === "false") result[key] = false;
+  });
+  return result;
+};
