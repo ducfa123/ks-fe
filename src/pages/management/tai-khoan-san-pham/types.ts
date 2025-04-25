@@ -30,7 +30,7 @@ export const columnForms = [
       return [
         {
           value: formValue?.san_pham_detail?._id,
-          label: formValue?.san_pham_detail.ten,
+          label: formValue?.san_pham_detail?.ten,
         },
       ];
     },
