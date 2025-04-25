@@ -22,12 +22,7 @@ export const Menu = () => {
             padding: "5px",
           }}
         >
-          <Box
-            component="img"
-            src={logo} // Dùng biến import
-            alt="Logo"
-            sx={{ width: "100px" }}
-          />
+          <Box component="img" src={logo} alt="Logo" sx={{ height: "40px" }} />
         </Box>
         <Box sx={styles.menuContainerStyle}>
           {menus.map((item: SideMenuItem, i: number) => {
