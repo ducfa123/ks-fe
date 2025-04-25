@@ -91,6 +91,15 @@ const combos: Combo[] = [
     products: ["MacBook Pro M1", "Apple Watch Series 7"],
     discount: 12,
   },
+  {
+    id: 3,
+    name: "Combo Giải Trí Cao Cấp",
+    price: "35.990.000đ",
+    originalPrice: "42.980.000đ",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    products: ["Samsung Galaxy S21 Ultra", "Sony WH-1000XM4"],
+    discount: 16,
+  },
 ];
 
 export const ClientHomePage = () => {

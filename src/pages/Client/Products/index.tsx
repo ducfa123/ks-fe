@@ -51,7 +51,8 @@ const products: Product[] = [
     id: 1,
     name: "iPhone 13 Pro Max",
     price: "29.990.000đ",
-    image: "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1631729371254-42c2892f0e6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.8,
     category: "Điện thoại",
     brand: "Apple",
@@ -60,7 +61,8 @@ const products: Product[] = [
     id: 2,
     name: "MacBook Pro M1",
     price: "39.990.000đ",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.9,
     category: "Laptop",
     brand: "Apple",
@@ -69,7 +71,8 @@ const products: Product[] = [
     id: 3,
     name: "AirPods Pro",
     price: "6.990.000đ",
-    image: "https://images.unsplash.com/photo-1606220588911-456ab0a1b0b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.7,
     category: "Phụ kiện",
     brand: "Apple",
@@ -78,7 +81,8 @@ const products: Product[] = [
     id: 4,
     name: "Apple Watch Series 7",
     price: "12.990.000đ",
-    image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.6,
     category: "Đồng hồ",
     brand: "Apple",
@@ -87,7 +91,8 @@ const products: Product[] = [
     id: 5,
     name: "Samsung Galaxy S21 Ultra",
     price: "24.990.000đ",
-    image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.7,
     category: "Điện thoại",
     brand: "Samsung",
@@ -96,7 +101,8 @@ const products: Product[] = [
     id: 6,
     name: "Dell XPS 13",
     price: "34.990.000đ",
-    image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.8,
     category: "Laptop",
     brand: "Dell",
@@ -105,7 +111,8 @@ const products: Product[] = [
     id: 7,
     name: "Sony WH-1000XM4",
     price: "8.990.000đ",
-    image: "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1613040809024-b4ef7ba99bc3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.9,
     category: "Phụ kiện",
     brand: "Sony",
@@ -114,7 +121,8 @@ const products: Product[] = [
     id: 8,
     name: "Garmin Fenix 6",
     price: "15.990.000đ",
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     rating: 4.5,
     category: "Đồng hồ",
     brand: "Garmin",
@@ -127,7 +135,8 @@ const combos: Combo[] = [
     name: "Combo Apple Premium",
     price: "45.990.000đ",
     originalPrice: "52.970.000đ",
-    image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     products: ["iPhone 13 Pro Max", "AirPods Pro"],
     discount: 15,
   },
@@ -136,9 +145,20 @@ const combos: Combo[] = [
     name: "Combo Làm Việc Chuyên Nghiệp",
     price: "65.990.000đ",
     originalPrice: "74.980.000đ",
-    image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    image:
+      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
     products: ["MacBook Pro M1", "Apple Watch Series 7"],
     discount: 12,
+  },
+  {
+    id: 3,
+    name: "Combo Giải Trí Cao Cấp",
+    price: "35.990.000đ",
+    originalPrice: "42.980.000đ",
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+    products: ["Samsung Galaxy S21 Ultra", "Sony WH-1000XM4"],
+    discount: 16,
   },
 ];
 
@@ -162,27 +182,30 @@ export const ClientProductsPage = () => {
 
   const handleBrandChange = (brand: string) => {
     setSelectedBrands((prev) =>
-      prev.includes(brand)
-        ? prev.filter((b) => b !== brand)
-        : [...prev, brand]
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
     );
   };
 
   const handleAddToCart = (product: Product) => {
-    dispatch(addToCart({
-      id: product.id.toString(),
-      name: product.name,
-      price: parseInt(product.price.replace(/[^\d]/g, '')),
-      image: product.image,
-      quantity: 1
-    }));
+    dispatch(
+      addToCart({
+        id: product.id.toString(),
+        name: product.name,
+        price: parseInt(product.price.replace(/[^\d]/g, "")),
+        image: product.image,
+        quantity: 1,
+      })
+    );
   };
 
   return (
     <Container sx={{ py: 4 }}>
       {/* Combo Section */}
       <Box sx={{ mb: 6 }}>
-        <Typography variant="h4" sx={{ mb: 4, fontWeight: "bold", color: "#098DEE" }}>
+        <Typography
+          variant="h4"
+          sx={{ mb: 4, fontWeight: "bold", color: "#098DEE" }}
+        >
           Combo Ưu Đãi
         </Typography>
         <Grid container spacing={3}>
@@ -216,7 +239,11 @@ export const ClientProductsPage = () => {
                   <Typography variant="h6" gutterBottom>
                     {combo.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 1 }}
+                  >
                     {combo.products.join(" + ")}
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -225,7 +252,10 @@ export const ClientProductsPage = () => {
                     </Typography>
                     <Typography
                       variant="body2"
-                      sx={{ textDecoration: "line-through", color: "text.secondary" }}
+                      sx={{
+                        textDecoration: "line-through",
+                        color: "text.secondary",
+                      }}
                     >
                       {combo.originalPrice}
                     </Typography>
@@ -235,15 +265,17 @@ export const ClientProductsPage = () => {
                     startIcon={<ShoppingCart />}
                     fullWidth
                     sx={{ mt: 2 }}
-                    onClick={() => handleAddToCart({
-                      id: combo.id,
-                      name: combo.name,
-                      price: combo.price,
-                      image: combo.image,
-                      rating: 5,
-                      category: "Combo",
-                      brand: "Combo"
-                    })}
+                    onClick={() =>
+                      handleAddToCart({
+                        id: combo.id,
+                        name: combo.name,
+                        price: combo.price,
+                        image: combo.image,
+                        rating: 5,
+                        category: "Combo",
+                        brand: "Combo",
+                      })
+                    }
                   >
                     Thêm vào giỏ hàng
                   </Button>
@@ -422,4 +454,4 @@ export const ClientProductsPage = () => {
       </Grid>
     </Container>
   );
-}; 
+};

@@ -17,6 +17,7 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon,
   Remove as RemoveIcon,
+  ShoppingCart as ShoppingCartIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
@@ -67,9 +68,47 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
         </Box>
 
         {items.length === 0 ? (
-          <Typography variant="body1" sx={{ textAlign: "center", my: 4 }}>
-            Giỏ hàng trống
-          </Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            py: 8,
+            textAlign: 'center'
+          }}>
+            <Box sx={{ 
+              width: 120, 
+              height: 120, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              bgcolor: 'grey.100',
+              borderRadius: '50%',
+              mb: 2
+            }}>
+              <ShoppingCartIcon sx={{ fontSize: 60, color: 'grey.400' }} />
+            </Box>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+              Giỏ hàng trống
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Bạn chưa có sản phẩm nào trong giỏ hàng
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => {
+                onClose();
+                navigate(RouterLink.CLIENT_PRODUCTS);
+              }}
+              sx={{ 
+                borderRadius: 2,
+                px: 4,
+                py: 1
+              }}
+            >
+              Tiếp tục mua sắm
+            </Button>
+          </Box>
         ) : (
           <>
             <List>

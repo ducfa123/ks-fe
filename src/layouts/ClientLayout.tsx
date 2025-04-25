@@ -12,6 +12,9 @@ import {
   Button,
   Badge,
   Grid,
+  Link,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -39,6 +42,8 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
   const navigate = useNavigate();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { items } = useSelector((state: RootState) => state.cart);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const menuItems = [
     { text: "Trang chủ", path: RouterLink.CLIENT_HOME },
@@ -68,9 +73,23 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
           <ListItem
             key={item.text}
             onClick={() => navigate(item.path)}
-            sx={{ cursor: "pointer" }}
+            sx={{ 
+              cursor: "pointer",
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              }
+            }}
           >
-            <ListItemText primary={item.text} />
+            <ListItemText 
+              primary={item.text} 
+              sx={{
+                textAlign: 'center',
+                '& .MuiTypography-root': {
+                  fontWeight: window.location.pathname === item.path ? 600 : 400,
+                  color: window.location.pathname === item.path ? theme.palette.primary.main : 'inherit',
+                }
+              }}
+            />
           </ListItem>
         ))}
       </List>
@@ -81,26 +100,103 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <AppBar
         position="sticky"
-        sx={{ bgcolor: "white", color: "black" }}
+        elevation={0}
+        sx={{ 
+          bgcolor: "white", 
+          color: "black",
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.09))',
+          fontFamily: 'Be Vietnam Pro, sans-serif',
+        }}
       >
         <Container maxWidth="lg">
-          <Toolbar>
+          <Toolbar sx={{ 
+            minHeight: 80,
+            fontFamily: 'inherit',
+          }}>
             <Box
               component="img"
               src={logo}
               alt="Logo"
-              sx={{ height: 40, mr: 2, cursor: "pointer" }}
+              sx={{ 
+                height: 40, 
+                mr: 2, 
+                cursor: "pointer",
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.05)'
+                }
+              }}
               onClick={() => navigate(RouterLink.CLIENT_HOME)}
             />
             <Typography
               variant="h6"
               component="div"
-              sx={{ flexGrow: 1, cursor: "pointer" }}
+              sx={{ 
+                flexGrow: 1, 
+                cursor: "pointer",
+                fontWeight: 600,
+                letterSpacing: '0.5px',
+                fontFamily: 'inherit',
+              }}
               onClick={() => navigate(RouterLink.CLIENT_HOME)}
             >
               Shop Tools
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+
+            {!isMobile && (
+              <Box sx={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 4,
+                mr: 4,
+                fontFamily: 'inherit',
+              }}>
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.text}
+                    component="button"
+                    onClick={() => navigate(item.path)}
+                    sx={{
+                      color: window.location.pathname === item.path ? theme.palette.primary.main : 'text.primary',
+                      textDecoration: 'none',
+                      fontWeight: window.location.pathname === item.path ? 600 : 400,
+                      position: 'relative',
+                      fontFamily: 'inherit',
+                      '&:after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: -4,
+                        left: 0,
+                        width: '100%',
+                        height: '2px',
+                        backgroundColor: window.location.pathname === item.path ? theme.palette.primary.main : 'transparent',
+                        transition: 'all 0.3s ease',
+                      },
+                      '&:hover:after': {
+                        backgroundColor: theme.palette.primary.main,
+                      }
+                    }}
+                  >
+                    {item.text}
+                  </Link>
+                ))}
+              </Box>
+            )}
+
+            <Box sx={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: 2,
+              '& .MuiIconButton-root': {
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  transform: 'scale(1.1)'
+                }
+              }
+            }}>
               <IconButton color="inherit">
                 <SearchIcon />
               </IconButton>
@@ -112,6 +208,16 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
               <IconButton color="inherit">
                 <PersonIcon />
               </IconButton>
+              {isMobile && (
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  edge="start"
+                  onClick={handleDrawerToggle}
+                >
+                  <MenuIcon />
+                </IconButton>
+              )}
             </Box>
           </Toolbar>
         </Container>
@@ -130,7 +236,8 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: 240,
-              top: 64,
+              top: 80,
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
             },
           }}
         >
