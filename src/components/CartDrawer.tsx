@@ -7,7 +7,6 @@ import {
   ListItem,
   ListItemText,
   ListItemAvatar,
-  Avatar,
   Button,
   Divider,
   TextField,
@@ -21,7 +20,7 @@ import {
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { removeFromCart, updateQuantity } from "../redux/slices/cartSlice";
+import { removeFromCart, updateQuantity, selectCartTotal } from "../redux/slices/cartSlice";
 import { useNavigate } from "react-router-dom";
 import { RouterLink } from "../routers/routers";
 
@@ -33,7 +32,8 @@ interface CartDrawerProps {
 const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, total } = useSelector((state: RootState) => state.cart);
+  const items = useSelector((state: RootState) => state.cart.items);
+  const total = useSelector(selectCartTotal);
 
   const handleQuantityChange = (id: string, newQuantity: number) => {
     if (newQuantity > 0) {
@@ -122,7 +122,21 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
                     }
                   >
                     <ListItemAvatar>
-                      <Avatar src={item.image} variant="square" />
+                      <Box
+                        component="img"
+                        src={item.image}
+                        alt={item.name}
+                        sx={{
+                          width: 60,
+                          height: 60,
+                          objectFit: 'contain',
+                          borderRadius: 1,
+                          p: 1,
+                          backgroundColor: 'background.paper',
+                          border: '1px solid',
+                          borderColor: 'divider'
+                        }}
+                      />
                     </ListItemAvatar>
                     <ListItemText
                       primary={item.name}
@@ -153,7 +167,7 @@ const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
                       }
                     />
                     <Typography variant="body1" sx={{ ml: 2 }}>
-                      {item.price.toLocaleString("vi-VN")}đ
+                      {(item.price * item.quantity).toLocaleString("vi-VN")}đ
                     </Typography>
                   </ListItem>
                   <Divider />

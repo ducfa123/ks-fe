@@ -7,13 +7,22 @@ import {
   Paper,
   Button,
   Divider,
+  IconButton,
+  TextField,
 } from "@mui/material";
-import { useSelector } from "react-redux";
+import {
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Remove as RemoveIcon,
+  ShoppingCart as ShoppingCartIcon,
+} from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { useNavigate } from "react-router-dom";
 import { RouterLink } from "../../../routers/routers";
 import { TCouponInput } from "../../../components/tCounponInput";
 import { APIServices } from "../../../utils";
+import { selectCartTotal, updateQuantity, removeFromCart } from "../../../redux/slices/cartSlice";
 
 interface CouponInfo {
   loai: string;
@@ -25,9 +34,21 @@ interface CouponInfo {
 
 export const ClientCheckoutPage = () => {
   const navigate = useNavigate();
-  const { items, total } = useSelector((state: RootState) => state.cart);
+  const dispatch = useDispatch();
+  const items = useSelector((state: RootState) => state.cart.items);
+  const total = useSelector(selectCartTotal);
   const [couponCode, setCouponCode] = useState("");
   const [couponInfo, setCouponInfo] = useState<CouponInfo | null>(null);
+
+  const handleQuantityChange = (id: string, newQuantity: number) => {
+    if (newQuantity > 0) {
+      dispatch(updateQuantity({ id, quantity: newQuantity }));
+    }
+  };
+
+  const handleRemoveItem = (id: string) => {
+    dispatch(removeFromCart(id));
+  };
 
   const handleVerifyCoupon = async (code: string): Promise<CouponInfo> => {
     try {
@@ -89,21 +110,47 @@ export const ClientCheckoutPage = () => {
   if (items.length === 0) {
     return (
       <Container sx={{ py: 4, textAlign: "center" }}>
-        <Typography variant="h5" gutterBottom>
-          Giỏ hàng trống
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
-          sx={{ mt: 2 }}
-        >
-          Tiếp tục mua sắm
-        </Button>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          py: 8,
+          textAlign: 'center'
+        }}>
+          <Box sx={{ 
+            width: 120, 
+            height: 120, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            bgcolor: 'grey.100',
+            borderRadius: '50%',
+            mb: 2
+          }}>
+            <ShoppingCartIcon sx={{ fontSize: 60, color: 'grey.400' }} />
+          </Box>
+          <Typography variant="h5" sx={{ mb: 1, fontWeight: 500 }}>
+            Giỏ hàng trống
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Bạn chưa có sản phẩm nào trong giỏ hàng
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
+            sx={{ 
+              borderRadius: 2,
+              px: 4,
+              py: 1
+            }}
+          >
+            Tiếp tục mua sắm
+          </Button>
+        </Box>
       </Container>
     );
   }
-
-  console.log({ items });
 
   return (
     <Container sx={{ py: 4 }}>
@@ -156,12 +203,20 @@ export const ClientCheckoutPage = () => {
                         }}
                       >
                         <Box sx={{ width: "100%" }}>
-                          <Typography
-                            variant="h6"
-                            sx={{ fontWeight: "bold", mb: 2 }}
-                          >
-                            {item.name}
-                          </Typography>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <Typography
+                              variant="h6"
+                              sx={{ fontWeight: "bold", mb: 2 }}
+                            >
+                              {item.name}
+                            </Typography>
+                            <IconButton 
+                              onClick={() => handleRemoveItem(item.id)}
+                              sx={{ color: 'error.main' }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
                           {item.isCombo && (
                             <Box sx={{ mt: 3 }}>
                               <Typography
@@ -229,15 +284,35 @@ export const ClientCheckoutPage = () => {
                             borderColor: "divider",
                           }}
                         >
-                          <Typography variant="body2" color="text.secondary">
-                            Số lượng: {item.quantity}
-                          </Typography>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                            >
+                              <RemoveIcon fontSize="small" />
+                            </IconButton>
+                            <TextField
+                              size="small"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleQuantityChange(item.id, parseInt(e.target.value) || 1)
+                              }
+                              inputProps={{ min: 1, style: { textAlign: "center" } }}
+                              sx={{ width: 60 }}
+                            />
+                            <IconButton
+                              size="small"
+                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                            >
+                              <AddIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
                           <Typography
                             variant="h6"
                             color="primary"
                             sx={{ fontWeight: "bold" }}
                           >
-                            {item.price.toLocaleString("vi-VN")}đ
+                            {(item.price * item.quantity).toLocaleString("vi-VN")}đ
                           </Typography>
                         </Box>
                       </Box>

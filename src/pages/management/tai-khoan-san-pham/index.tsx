@@ -147,7 +147,7 @@ export const TaiKhoanSanPhamPage = () => {
             sx={styles.addButtonStyle}
             onClick={() => handleOpenModal()}
           >
-            Thêm danh mục
+            Thêm tài khoản sản phẩm
           </Button>
         </Box>
 

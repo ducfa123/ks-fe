@@ -6,3 +6,4 @@ export * from "./san-pham";
 export * from "./phieu-giam-gia";
 export * from "./combo-san-pham";
 export * from "./tai-khoan-san-pham";
+export * from "./client";

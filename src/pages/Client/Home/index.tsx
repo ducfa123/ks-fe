@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -14,8 +14,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import { RouterLink } from "../../../routers/routers";
 import { ShoppingCart } from "@mui/icons-material";
-import { mockProducts, mockCombos } from "../../../utils/mock-data";
 import { formatCurrency } from "../../../utils/formatCurrency";
+import { ClientService } from "../../../utils/apis/client";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../../../redux/slices/cartSlice";
 
 interface Product {
   _id: string;
@@ -38,11 +40,65 @@ interface Combo {
 
 export const ClientHomePage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [combos, setCombos] = useState<Combo[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsData, combosData] = await Promise.all([
+          ClientService.getListProducts(1, 8),
+          ClientService.getListCombos(1, 8),
+        ]);
+        setProducts(productsData?.items || []);
+        setCombos(combosData?.items || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleAddToCart = (item: Product | Combo) => {
-    // TODO: Implement add to cart functionality
-    console.log("Add to cart:", item);
+    if ("gia_combo" in item) {
+      // It's a combo
+      dispatch(
+        addToCart({
+          id: item._id,
+          name: item.ten,
+          price: item.gia_combo,
+          image: item.danh_sach_san_pham_detail[0]?.hinh_anh[0] || "",
+          quantity: 1,
+          isCombo: true,
+          danh_sach_san_pham_detail: item.danh_sach_san_pham_detail,
+        })
+      );
+    } else {
+      // It's a product
+      dispatch(
+        addToCart({
+          id: item._id,
+          name: item.ten,
+          price: item.gia,
+          image: item.hinh_anh[0],
+          quantity: 1,
+        })
+      );
+    }
   };
+
+  if (loading) {
+    return (
+      <Container>
+        <Typography>Loading...</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Box>
@@ -60,7 +116,11 @@ export const ClientHomePage = () => {
               <Button
                 variant="contained"
                 size="large"
-                sx={{ bgcolor: "white", color: "#098DEE", "&:hover": { bgcolor: "#f5f5f5" } }}
+                sx={{
+                  bgcolor: "white",
+                  color: "#098DEE",
+                  "&:hover": { bgcolor: "#f5f5f5" },
+                }}
                 onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
               >
                 Xem sản phẩm
@@ -69,7 +129,7 @@ export const ClientHomePage = () => {
             <Grid item xs={12} md={6}>
               <Box
                 component="img"
-                src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                src="/hero-tools.png"
                 alt="Hero"
                 sx={{ width: "100%", borderRadius: 2 }}
               />
@@ -82,7 +142,10 @@ export const ClientHomePage = () => {
       <Box sx={{ py: 8 }}>
         <Container>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: "bold", color: "#098DEE" }}>
+            <Typography
+              variant="h4"
+              sx={{ fontWeight: "bold", color: "#098DEE" }}
+            >
               Sản phẩm nổi bật
             </Typography>
             <Link
@@ -95,7 +158,7 @@ export const ClientHomePage = () => {
             </Link>
           </Box>
           <Grid container spacing={4}>
-            {mockProducts.map((product) => (
+            {products.map((product) => (
               <Grid item xs={12} sm={6} md={3} key={product._id}>
                 <Card
                   sx={{
@@ -109,7 +172,11 @@ export const ClientHomePage = () => {
                       boxShadow: 3,
                     },
                   }}
-                  onClick={() => navigate(`${RouterLink.CLIENT_PRODUCTS}?product=${product._id}`)}
+                  onClick={() =>
+                    navigate(
+                      `${RouterLink.CLIENT_PRODUCTS}?product=${product._id}`
+                    )
+                  }
                 >
                   <CardMedia
                     component="img"
@@ -118,13 +185,27 @@ export const ClientHomePage = () => {
                     alt={product.ten}
                     sx={{ objectFit: "contain", p: 2 }}
                   />
-                  <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                  <CardContent
+                    sx={{
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
                     <Box sx={{ flexGrow: 1 }}>
                       <Typography gutterBottom variant="h6" component="div">
                         {product.ten}
                       </Typography>
-                      <Chip label={product.danh_muc_detail.ten} size="small" sx={{ mb: 1 }} />
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      <Chip
+                        label={product.danh_muc_detail.ten}
+                        size="small"
+                        sx={{ mb: 1 }}
+                      />
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 1 }}
+                      >
                         {product.mo_ta}
                       </Typography>
                       <Typography variant="h6" color="primary">
@@ -155,7 +236,10 @@ export const ClientHomePage = () => {
       <Box sx={{ py: 8, bgcolor: "#f5f5f5" }}>
         <Container>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: "bold", color: "#098DEE" }}>
+            <Typography
+              variant="h4"
+              sx={{ fontWeight: "bold", color: "#098DEE" }}
+            >
               Combo Ưu Đãi
             </Typography>
             <Link
@@ -168,12 +252,14 @@ export const ClientHomePage = () => {
             </Link>
           </Box>
           <Grid container spacing={4}>
-            {mockCombos.map((combo) => {
+            {combos.map((combo) => {
               const totalOriginalPrice = combo.danh_sach_san_pham_detail.reduce(
                 (sum, product) => sum + product.gia,
                 0
               );
-              const discount = ((totalOriginalPrice - combo.gia_combo) / totalOriginalPrice) * 100;
+              const discount =
+                ((totalOriginalPrice - combo.gia_combo) / totalOriginalPrice) *
+                100;
 
               return (
                 <Grid item xs={12} sm={6} md={4} key={combo._id}>
@@ -189,9 +275,19 @@ export const ClientHomePage = () => {
                         boxShadow: 3,
                       },
                     }}
-                    onClick={() => navigate(`${RouterLink.CLIENT_PRODUCTS}?combo=${combo._id}`)}
+                    onClick={() =>
+                      navigate(
+                        `${RouterLink.CLIENT_PRODUCTS}?combo=${combo._id}`
+                      )
+                    }
                   >
-                    <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                    <CardContent
+                      sx={{
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
                       <Box sx={{ flexGrow: 1 }}>
                         <Chip
                           label={`Tiết kiệm ${Math.round(discount)}%`}
@@ -202,37 +298,50 @@ export const ClientHomePage = () => {
                         <Typography variant="h6" gutterBottom>
                           {combo.ten}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 2 }}
+                        >
                           {combo.mo_ta}
                         </Typography>
                         <Box sx={{ mb: 2 }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ mb: 1 }}
+                          >
                             Sản phẩm trong combo:
                           </Typography>
                           <Grid container spacing={1}>
                             {combo.danh_sach_san_pham_detail.map((product) => (
                               <Grid item xs={6} key={product._id}>
-                                <Box sx={{ 
-                                  display: 'flex', 
-                                  flexDirection: 'column', 
-                                  alignItems: 'center',
-                                  p: 1,
-                                  border: '1px solid',
-                                  borderColor: 'divider',
-                                  borderRadius: 1
-                                }}>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    p: 1,
+                                    border: "1px solid",
+                                    borderColor: "divider",
+                                    borderRadius: 1,
+                                  }}
+                                >
                                   <Box
                                     component="img"
                                     src={product.hinh_anh[0]}
                                     alt={product.ten}
-                                    sx={{ 
-                                      width: '100%',
+                                    sx={{
+                                      width: "100%",
                                       height: 80,
-                                      objectFit: 'contain',
-                                      mb: 1
+                                      objectFit: "contain",
+                                      mb: 1,
                                     }}
                                   />
-                                  <Typography variant="body2" sx={{ textAlign: 'center' }}>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ textAlign: "center" }}
+                                  >
                                     {product.ten}
                                   </Typography>
                                 </Box>
@@ -241,7 +350,11 @@ export const ClientHomePage = () => {
                           </Grid>
                         </Box>
                         <Box sx={{ mb: 2 }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ textDecoration: "line-through" }}
+                          >
                             {formatCurrency(totalOriginalPrice)}
                           </Typography>
                           <Typography variant="h6" color="primary">
@@ -253,7 +366,6 @@ export const ClientHomePage = () => {
                         variant="contained"
                         startIcon={<ShoppingCart />}
                         fullWidth
-                        sx={{ mt: 2 }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleAddToCart(combo);
@@ -283,7 +395,11 @@ export const ClientHomePage = () => {
             <Button
               variant="contained"
               size="large"
-              sx={{ bgcolor: "white", color: "#098DEE", "&:hover": { bgcolor: "#f5f5f5" } }}
+              sx={{
+                bgcolor: "white",
+                color: "#098DEE",
+                "&:hover": { bgcolor: "#f5f5f5" },
+              }}
               onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
             >
               Xem sản phẩm

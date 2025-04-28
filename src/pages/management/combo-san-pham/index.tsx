@@ -191,7 +191,7 @@ export const ComboSanPhamPage = () => {
             sx={styles.addButtonStyle}
             onClick={() => handleOpenModal()}
           >
-            Thêm danh mục
+            Thêm combo
           </Button>
         </Box>
 

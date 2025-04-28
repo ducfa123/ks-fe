@@ -160,7 +160,7 @@ export const SanPhamPage = () => {
             sx={styles.addButtonStyle}
             onClick={() => handleOpenModal()}
           >
-            Thêm danh mục
+            Thêm sản phẩm
           </Button>
         </Box>
 
