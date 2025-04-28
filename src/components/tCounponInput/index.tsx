@@ -168,7 +168,7 @@ export const TCouponInput: React.FC<Props> = ({
           sx={{
             backgroundColor: "#0A8DEE",
             textTransform: "none !important",
-            width: "150px",
+            width: "200px",
           }}
         >
           {loading ? <CircularProgress size={24} /> : "Áp dụng"}
