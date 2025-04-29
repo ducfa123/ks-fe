@@ -1,10 +1,28 @@
-import { Box, Button, Container, TextField, Typography, Paper, Grid, Link } from "@mui/material";
+import {
+  Box,
+  Button,
+  Container,
+  TextField,
+  Typography,
+  Paper,
+  Grid,
+  Link,
+} from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RouterLink } from "../../../routers/routers";
+import { useAppDispatch } from "../../../hooks";
+import {
+  loginClientSuccess,
+  setClientToken,
+} from "../../../redux/auth-client/auth-client.slice";
+import { APIServices } from "../../../utils";
+import { useNotifier } from "../../../provider/NotificationProvider";
 
 const ClientLoginPage = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { success } = useNotifier();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,20 +32,31 @@ const ClientLoginPage = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    
-    // try {
-    //   const response = await clientLogin(username, password);
-    //   if (response.success) {
-    //     await login(response.data.token);
-    //     navigate(RouterLink.CLIENT_HOME);
-    //   } else {
-    //     setError(response.message || "Đăng nhập thất bại");
-    //   }
-    // } catch (err) {
-    //   setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi đăng nhập");
-    // } finally {
-    //   setLoading(false);
-    // }
+
+    try {
+      const request = await APIServices.Auth.login(username, password);
+      const { access_token, nguoi_dung: user } = request.data;
+      console.log("Login response:", request.data);
+
+      // Lưu token vào Redux state và StoreService
+      dispatch(setClientToken(access_token));
+      dispatch(
+        loginClientSuccess({
+          _id: user._id,
+          ho_ten: user.ho_ten,
+          email: user.email,
+          sdt: user.sdt,
+        })
+      );
+
+      success("Đăng nhập thành công");
+      navigate(RouterLink.CLIENT_HOME);
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Đăng nhập thất bại. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,7 +88,11 @@ const ClientLoginPage = () => {
               >
                 Đăng nhập
               </Typography>
-              <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
+              <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{ width: "100%" }}
+              >
                 <TextField
                   margin="normal"
                   required
@@ -148,4 +181,4 @@ const ClientLoginPage = () => {
   );
 };
 
-export default ClientLoginPage; 
+export default ClientLoginPage;

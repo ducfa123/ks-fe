@@ -9,41 +9,66 @@ import {
   List,
   ListItem,
   ListItemText,
-  Button,
   Badge,
-  Grid,
   Link,
   useTheme,
   useMediaQuery,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
   Search as SearchIcon,
   Person as PersonIcon,
   ShoppingCart as ShoppingCartIcon,
-  Facebook,
-  Instagram,
-  Twitter,
+  Home,
+  MenuBook,
+  Info,
+  ContactMail,
+  Logout,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { RouterLink } from "../routers/routers";
 import logo from "../assets/images/logo.jpg";
 import CartDrawer from "../components/CartDrawer";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
+import { useAppSelector } from "../hooks";
+import { useClientAuth } from "../hooks/useClientAuth";
+import { logoutClient } from "../redux/auth-client/auth-client.slice";
 
-interface ClientLayoutProps {
-  children: React.ReactNode;
+interface UserInfo {
+  _id: string;
+  nguoi_gioi_thieu: string | null;
+  vai_tro: string;
+  tai_khoan: string;
+  ho_ten: string;
+  so_du: number;
+  created_date: number;
+  last_update: number;
+  __v: number;
+  chi_tiet_vai_tro: {
+    _id: string;
+    ten: string;
+    last_update: number;
+    created_date: number;
+    __v: number;
+  };
 }
 
-export const ClientLayout = ({ children }: ClientLayoutProps) => {
+export const ClientLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navigate = useNavigate();
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const { items } = useSelector((state: RootState) => state.cart);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { items } = useSelector((state: RootState) => state.cart);
+  const user = useAppSelector((state: RootState) => state.authClient.info) as UserInfo | null;
+
+  useClientAuth();
 
   const menuItems = [
     { text: "Trang chủ", path: RouterLink.CLIENT_HOME },
@@ -54,6 +79,20 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    dispatch(logoutClient());
+    handleMenuClose();
+    navigate(RouterLink.CLIENT_LOGIN);
   };
 
   const drawer = (
@@ -142,7 +181,7 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
               }}
               onClick={() => navigate(RouterLink.CLIENT_HOME)}
             >
-              Shop Tools
+              IntX Shop
             </Typography>
 
             {!isMobile && (
@@ -205,9 +244,53 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
                   <ShoppingCartIcon />
                 </Badge>
               </IconButton>
-              <IconButton color="inherit">
-                <PersonIcon />
-              </IconButton>
+              {user ? (
+                <>
+                  <IconButton
+                    color="inherit"
+                    onClick={handleMenuOpen}
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      gap: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        transform: 'scale(1.1)'
+                      }
+                    }}
+                  >
+                    <PersonIcon />
+                    <Typography variant="body1" sx={{ ml: 1 }}>
+                      {user.ho_ten}
+                    </Typography>
+                  </IconButton>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                  >
+                    <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                      <Logout sx={{ mr: 1 }} />
+                      Đăng xuất
+                    </MenuItem>
+                  </Menu>
+                </>
+              ) : (
+                <IconButton 
+                  color="inherit"
+                  onClick={() => navigate(RouterLink.CLIENT_LOGIN)}
+                >
+                  <PersonIcon />
+                </IconButton>
+              )}
               {isMobile && (
                 <IconButton
                   color="inherit"
@@ -246,13 +329,14 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
       </Box>
 
       <Box component="main" sx={{ flexGrow: 1 }}>
-        {children}
+        <Outlet />
       </Box>
 
       <Box
         component="footer"
         sx={{
-          bgcolor: "#f5f5f5",
+          bgcolor: theme.palette.primary.main,
+          color: "white",
           py: 4,
           mt: "auto",
         }}
@@ -262,55 +346,55 @@ export const ClientLayout = ({ children }: ClientLayoutProps) => {
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              flexWrap: "wrap",
+              alignItems: "center",
             }}
           >
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Về chúng tôi
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                IntX Shop
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Shop Tools - Nơi cung cấp các công cụ và thiết bị chất lượng cao
-                cho mọi nhu cầu của bạn.
-              </Typography>
-            </Box>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Liên hệ
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Email: support@shoptools.com
-                <br />
-                Điện thoại: 0123 456 789
-                <br />
+              <Typography variant="body2">
                 Địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM
               </Typography>
-            </Box>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Theo dõi chúng tôi
+              <Typography variant="body2">
+                Điện thoại: 0123 456 789
               </Typography>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <IconButton color="primary">
-                  <Facebook />
+              <Typography variant="body2">
+                Email: contact@intxshop.com
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Liên kết nhanh
+              </Typography>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <IconButton
+                  color="inherit"
+                  onClick={() => navigate(RouterLink.CLIENT_HOME)}
+                >
+                  <Home />
                 </IconButton>
-                <IconButton color="primary">
-                  <Instagram />
+                <IconButton
+                  color="inherit"
+                  onClick={() => navigate(RouterLink.CLIENT_PRODUCTS)}
+                >
+                  <MenuBook />
                 </IconButton>
-                <IconButton color="primary">
-                  <Twitter />
+                <IconButton
+                  color="inherit"
+                  onClick={() => navigate(RouterLink.CLIENT_ABOUT)}
+                >
+                  <Info />
+                </IconButton>
+                <IconButton
+                  color="inherit"
+                  onClick={() => navigate(RouterLink.CLIENT_CONTACT)}
+                >
+                  <ContactMail />
                 </IconButton>
               </Box>
             </Box>
           </Box>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            align="center"
-            sx={{ mt: 2 }}
-          >
-            © {new Date().getFullYear()} Intx. All rights reserved.
-          </Typography>
         </Container>
       </Box>
 

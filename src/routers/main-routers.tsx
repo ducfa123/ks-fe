@@ -19,6 +19,7 @@ import { ClientCheckoutPage } from "../pages/Client/Checkout";
 import { ChartDashboard } from "../components/ChartDashboard";
 import { ClientAboutPage } from "../pages/Client/About";
 import { ClientContactPage } from "../pages/Client/Contact";
+import ClientLoginPage from "../pages/Client/login";
 
 const MainRoutes = [
   // Client routes
@@ -125,7 +126,7 @@ const MainRoutes = [
   },
   // Auth routes
   { path: RouterLink.ADMIN_LOGIN, element: <LoginPage /> },
-  { path: RouterLink.CLIENT_LOGIN, element: <LoginPage /> },
+  { path: RouterLink.CLIENT_LOGIN, element: <ClientLoginPage /> },
   // Default route
   // { path: "*", element: <Navigate to={RouterLink.CLIENT_HOME} replace /> },
 ];
