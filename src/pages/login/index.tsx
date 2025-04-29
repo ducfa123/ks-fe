@@ -143,9 +143,6 @@ export const LoginPage = () => {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
-
-  console.log({ isLogin });
-
   if (isLogin) return <Navigate to={RouterLink.ADMIN_HOME} />;
 
   return (

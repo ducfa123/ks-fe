@@ -52,8 +52,6 @@ const updateEntity = async (id: string, entity: any) => {
 
   const { files = [], ...rest } = entity;
 
-  console.log({ files });
-
   Object.entries(rest).forEach(([key, value]) => {
     if (Array.isArray(value)) {
       value.forEach((v) => formData.append(`${key}[]`, v));

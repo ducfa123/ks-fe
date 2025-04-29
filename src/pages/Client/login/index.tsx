@@ -36,8 +36,7 @@ const ClientLoginPage = () => {
     try {
       const request = await APIServices.Auth.login(username, password);
       const { access_token, nguoi_dung: user } = request.data;
-      console.log("Login response:", request.data);
-
+      
       // Lưu token vào Redux state và StoreService
       dispatch(setClientToken(access_token));
       dispatch(

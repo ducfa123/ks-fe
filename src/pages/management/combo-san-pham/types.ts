@@ -39,7 +39,6 @@ export const columnForms = [
     fetchOptions: async (input) => {
       const ans = await APIServices.SanPhamService.getListEntity(1, 10, input);
       const { items } = ans;
-      console.log({ items });
       return items.map((item) => ({
         value: item._id,
         label: item.ten,

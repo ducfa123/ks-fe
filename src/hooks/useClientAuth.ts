@@ -12,7 +12,6 @@ export const useClientAuth = () => {
   const token = useAppSelector((state: RootState) => state.authClient.token);
 
   useEffect(() => {
-    console.log("token", token);
     if (token) {
       const fetchUserInfo = async () => {
         try {
