@@ -20,6 +20,7 @@ import { ChartDashboard } from "../components/ChartDashboard";
 import { ClientAboutPage } from "../pages/Client/About";
 import { ClientContactPage } from "../pages/Client/Contact";
 import ClientLoginPage from "../pages/Client/login";
+import { ClientOrderHistoryPage } from "../pages/Client/OrderHistory";
 
 const MainRoutes = [
   // Client routes
@@ -51,6 +52,10 @@ const MainRoutes = [
       {
         path: RouterLink.CLIENT_CONTACT.replace("/", ""),
         element: <ClientContactPage />,
+      },
+      {
+        path: "order-history",
+        element: <ClientOrderHistoryPage />,
       },
       { path: "*", element: <Navigate to={RouterLink.CLIENT_HOME} replace /> },
     ],

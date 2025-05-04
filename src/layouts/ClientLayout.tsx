@@ -26,6 +26,7 @@ import {
   Info,
   ContactMail,
   Logout,
+  History,
 } from "@mui/icons-material";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -277,6 +278,13 @@ export const ClientLayout = () => {
                       horizontal: 'right',
                     }}
                   >
+                    <MenuItem onClick={() => {
+                      navigate('/order-history');
+                      handleMenuClose();
+                    }}>
+                      <History sx={{ mr: 1 }} />
+                      Lịch sử đơn hàng
+                    </MenuItem>
                     <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                       <Logout sx={{ mr: 1 }} />
                       Đăng xuất
@@ -329,7 +337,9 @@ export const ClientLayout = () => {
       </Box>
 
       <Box component="main" sx={{ flexGrow: 1 }}>
-        <Outlet />
+        <Container maxWidth="lg">
+          <Outlet />
+        </Container>
       </Box>
 
       <Box

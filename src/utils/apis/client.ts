@@ -37,8 +37,18 @@ const createPayment = async (cartItems: CartItem[], ma_giam_gia?: string) => {
   });
 };
 
+const getOrderHistory = async (pageIndex = 1, pageSize = 10) => {
+  const ans = await api.makeAuthRequest({
+    url: `/don-hang/lich-su?pageSize=${pageSize}&pageIndex=${pageIndex}`,
+    method: "GET",
+  });
+
+  return ans?.data;
+};
+
 export const ClientService = {
   getListProducts,
   getListCombos,
   createPayment,
+  getOrderHistory,
 };
