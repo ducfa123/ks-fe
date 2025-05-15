@@ -195,7 +195,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
               }}
               onClick={() => navigate(RouterLink.CLIENT_HOME)}
             >
-              IntX Shop
+              Intx Shop
             </Typography>
 
             {!isMobile && (
@@ -367,9 +367,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
       </Box>
 
       <Box component="main" sx={{ flexGrow: 1 }}>
-        <Container maxWidth="lg">
-          {children}
-        </Container>
+        <Container maxWidth="lg">{children}</Container>
       </Box>
 
       <Box

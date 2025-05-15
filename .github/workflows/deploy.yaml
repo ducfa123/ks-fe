@@ -52,15 +52,15 @@ jobs:
       - name: Deploy to server via SCP
         run: |
           echo "==== Copying files to server ===="
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -o StrictHostKeyChecking=no -r dist/* \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/root/source/shop-tool-fe/dist
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -P ${{ secrets.SERVER_PORT }} -o StrictHostKeyChecking=no -r dist/* \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/root/shop-tools/shop-tool-fe/dist
 
       - name: Restart server services
         run: |
-          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -o StrictHostKeyChecking=no \
+          sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -p ${{ secrets.SERVER_PORT }} -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
             echo "==== Deploying Vite Project ===="
-            cd /root/source/shop-tool-fe
+            cd /root/shop-tools/shop-tool-fe
 
             echo "==== Tạo .env từ GitHub Secrets ===="
             echo "${{ secrets.ENV_FILE }}" > .env
