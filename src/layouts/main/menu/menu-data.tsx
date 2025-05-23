@@ -9,6 +9,7 @@ import {
 } from "react-icons/md";
 import { CiShop } from "react-icons/ci";
 import { TbCategory2 } from "react-icons/tb";
+import { BsClockHistory } from "react-icons/bs";
 
 export const menus: Array<SideMenuItem> = [
   {
@@ -66,6 +67,15 @@ export const menus: Array<SideMenuItem> = [
         children: [],
         url: RouterLink.ADMIN_QUAN_LY_TAI_KHOAN_SAN_PHAM,
         module: SystemFeatures.QuanLySanPham,
+        action: [SystemAction.View, SystemAction.Edit],
+      },
+      {
+        key: RouterLink.ADMIN_LICH_SU_DON_HANG,
+        icon: <BsClockHistory />,
+        text: "Lịch sử đơn hàng",
+        children: [],
+        url: RouterLink.ADMIN_LICH_SU_DON_HANG,
+        module: SystemFeatures.QuanLyDonHang,
         action: [SystemAction.View, SystemAction.Edit],
       },
     ],

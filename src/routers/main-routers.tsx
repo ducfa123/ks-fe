@@ -21,6 +21,7 @@ import { ClientAboutPage } from "../pages/Client/About";
 import { ClientContactPage } from "../pages/Client/Contact";
 import ClientLoginPage from "../pages/Client/login";
 import { ClientOrderHistoryPage } from "../pages/Client/OrderHistory";
+import AdminOrderHistoryPage from "../pages/order-history/AdminOrderHistoryPage";
 
 const MainRoutes = [
   // Client routes
@@ -122,6 +123,12 @@ const MainRoutes = [
           {
             path: RouterLink.ADMIN_QUAN_LY_TAI_KHOAN_SAN_PHAM,
             element: <TaiKhoanSanPhamPage />,
+            module: SystemFeatures.QuanLySanPham,
+            action: [SystemAction.View, SystemAction.Edit],
+          },
+          {
+            path: RouterLink.ADMIN_LICH_SU_DON_HANG,
+            element: <AdminOrderHistoryPage />,
             module: SystemFeatures.QuanLySanPham,
             action: [SystemAction.View, SystemAction.Edit],
           },

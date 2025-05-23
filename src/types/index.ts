@@ -10,6 +10,7 @@ export enum SystemFeatures {
   QuanLyDanhMucSanPham = "QuanLyDanhMucSanPham",
   QuanLySanPham = "QuanLySanPham",
   QuanLyPhieuGiamGia = "QuanLyPhieuGiamGia",
+  QuanLyDonHang = "QuanLyDonHang",
 }
 
 export enum SystemAction {
