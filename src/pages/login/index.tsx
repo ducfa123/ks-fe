@@ -97,42 +97,63 @@ export const LoginPage = () => {
     } catch (error) {}
   };
 
+  
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
       setLoading(true);
       setLoginError("");
       try {
-        const request = await APIServices.Auth.login(
+        const response = await APIServices.Auth.login(
           formData.username,
           formData.password
         );
+        
 
-        const { access_token, nguoi_dung: user } = request.data;
+        const responseData = response.data;
+        let userData, tokenValue;
+           
+        if (responseData?.nguoi_dung && responseData?.access_token) {
+          userData = responseData.nguoi_dung;
+          tokenValue = responseData.access_token;
+        } 
 
         dispatch(
           loginSuccess({
-            _id: user?._id,
-            ho_ten: user?.ho_ten,
-            tai_khoan: user?.tai_khoan,
-            vai_tro: user?.vai_tro,
-            phong_ban: user?.phong_ban,
-            so_du: user?.so_du,
+            _id: userData._id,
+            ho_ten: userData.ten_nguoi_dung,
+            tai_khoan: userData.ten_dang_nhap, 
+            vai_tro: userData.ma_vai_tro, 
+            phong_ban: userData.phong_ban || null, 
+            so_du: userData.so_du || null, 
+            email: userData.email, 
+            sdt: userData.sdt, 
           })
         );
-        dispatch(setToken(access_token));
+        dispatch(setToken(tokenValue));
         dispatch(setIdToken(null));
-        loadPermission();
-
+        
+        // Tách riêng loadPermission để không ảnh hưởng đến luồng đăng nhập
+        try {
+          await loadPermission();
+        } catch (permError) {
+          console.error("Permission loading error:", permError);
+        }
+    
         success("Đăng nhập thành công");
       } catch (error) {
-        setLoginError("Đăng nhập thất bại. Vui lòng thử lại.");
+        console.error("Login error:", error);
+        if (error instanceof Error) {
+          setLoginError(`Đăng nhập thất bại: ${error.message}`);
+        } else {
+          setLoginError("Đăng nhập thất bại. Vui lòng thử lại.");
+        }
       } finally {
         setLoading(false);
       }
     }
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -165,7 +186,7 @@ export const LoginPage = () => {
             gutterBottom
             fontWeight="bold"
           >
-            CỬA HÀNG AI
+            PHẦN MỀM DỮ LIỆU XÃ HỘI
           </Typography>
           <Typography
             variant="body2"

@@ -4,11 +4,11 @@ const api = createApiServices();
 
 const login = (username = "", password = "") => {
   const body = {
-    password: password,
-    username: username,
+    ten_dang_nhap: username,
+    mat_khau: password,
   };
   return api.makeRequest({
-    url: "/authentication/login",
+    url: "/auth/login",
     method: "POST",
     data: body,
   });
@@ -16,41 +16,41 @@ const login = (username = "", password = "") => {
 
 const getPermission = () => {
   return api.makeAuthRequest({
-    url: "authentication/my-info",
-    method: "GET",
-    data: {},
-  });
-};
-
-const checkToken = () => {
-  return api.makeAuthRequest({
-    url: "authentication/check-token",
+    url: "/auth/profile",
     method: "GET",
     data: {},
   });
 };
 
 // const checkToken = () => {
-//   return new Promise((resolve) => {
-//     const fakeResponse = {
-//       data: {
-//         token: "fakeAccessToken",
-//         user: {
-//           _id: "fakeUserId",
-//           ho_ten: "Người dùng thử",
-//           tai_khoan: "testuser",
-//           vai_tro: "admin",
-//           phong_ban: "IT",
-//           so_du: 1000,
-//         },
-//       },
-//     };
-
-//     setTimeout(() => {
-//       resolve(fakeResponse);
-//     }, 10);
+//   return api.makeAuthRequest({
+//     url: "authentication/check-token",
+//     method: "GET",
+//     data: {},
 //   });
 // };
+
+const checkToken = () => {
+  return new Promise((resolve) => {
+    const fakeResponse = {
+      data: {
+        token: "fakeAccessToken",
+        user: {
+          _id: "fakeUserId",
+          ho_ten: "Người dùng thử",
+          tai_khoan: "testuser",
+          vai_tro: "admin",
+          phong_ban: "IT",
+          so_du: 1000,
+        },
+      },
+    };
+
+    setTimeout(() => {
+      resolve(fakeResponse);
+    }, 10);
+  });
+};
 
 const changeMyPassword = (old_password = "", new_password = "") => {
   return api.makeAuthRequest({
