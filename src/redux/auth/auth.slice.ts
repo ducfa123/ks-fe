@@ -9,9 +9,11 @@ export interface AuthState {
     _id: string;
     ho_ten: string;
     tai_khoan: string;
-    phong_ban: string;
+    phong_ban: string | null;
     vai_tro: string;
-    so_du: number;
+    so_du: number | null;
+    email: string | null;
+    sdt: string | null;
   } | null;
   permission: Array<Permission>;
   token: string | null;
@@ -38,9 +40,11 @@ export const authSlice = createSlice({
         _id: string;
         ho_ten: string;
         tai_khoan: string;
-        phong_ban: string;
+        phong_ban: string | null;
         vai_tro: string;
-        so_du: number;
+        so_du: number | null;
+        email: string | null;
+        sdt: string | null;
       }>
     ) => {
       state.isLogin = true;
@@ -74,9 +78,11 @@ export const authSlice = createSlice({
         _id: string;
         ho_ten: string;
         tai_khoan: string;
-        phong_ban: string;
+        phong_ban: string | null;
         vai_tro: string;
-        so_du: number;
+        so_du: number | null;
+        email: string | null;
+        sdt: string | null;
       }>
     ) => {
       state.isLogin = true;
