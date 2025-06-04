@@ -5,7 +5,7 @@ import ProtectedOutlet from "./protected-outlet";
 import { MainLayout } from "../layouts/main";
 import { VaiTroPage } from "../pages/management/vai-tro";
 import { PhanQuyenPage } from "../pages/management/quyen";
-import { NguoiDungPage } from "../pages/management/nguoi-dung";
+import { KhaoSatPage } from "../pages/management/khao-sat";
 import { SystemFeatures, SystemAction } from "../types";
 import { DanhMucSanPhamPage } from "../pages/management/danh-muc-san-pham";
 import { SanPhamPage } from "../pages/management/san-pham";
@@ -79,10 +79,10 @@ const MainRoutes = [
             element: <ChartDashboard />,
           },
           {
-            path: RouterLink.ADMIN_QUAN_LY_NGUOI_DUNG,
-            element: <NguoiDungPage />,
-            module: SystemFeatures.QuanLyNguoiDung,
-            action: [SystemAction.View, SystemAction.Edit],
+            path: RouterLink.ADMIN_QUAN_LY_KHAO_SAT,
+            element: <KhaoSatPage />,
+            // module: SystemFeatures.QuanLyNguoiDung,
+            // action: [SystemAction.View, SystemAction.Edit],
           },
           {
             path: RouterLink.ADMIN_QUAN_LY_VAI_TRO,

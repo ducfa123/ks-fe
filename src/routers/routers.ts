@@ -12,6 +12,7 @@ export const RouterLink = {
   ADMIN_QUAN_LY_SAN_PHAM: "/admin/ban-hang/quan-ly-san-pham",
   ADMIN_QUAN_LY_PHIEU_GIAM_GIA: "/admin/ban-hang/quan-ly-phieu-giam-gia",
   ADMIN_LICH_SU_DON_HANG: "/admin/ban-hang/lich-su-don-hang",
+  ADMIN_QUAN_LY_KHAO_SAT: "/admin/khao-sat",
 
   // Client routes
   CLIENT_HOME: "/",
@@ -26,7 +27,7 @@ export const RouterKey = {
   // Admin keys
   ADMIN_LOGIN: "ADMIN_LOGIN",
   ADMIN_HOME: "ADMIN_HOME",
-  ADMIN_QUAN_LY_BAN_HANG: "/admin/ban-hang",
+  ADMIN_QUAN_LY_KHAO_SAT: "/admin/khao-sat",
   ADMIN_QUAN_LY_HE_THONG: "/admin/he-thong",
   ADMIN_LICH_SU_DON_HANG: "ADMIN_LICH_SU_DON_HANG",
 
