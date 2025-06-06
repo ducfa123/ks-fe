@@ -1,39 +1,20 @@
 import createApiServices from "./make-api-request";
-import { KhaoSatUI } from "../../pages/management/khao-sat/types";
 
 const api = createApiServices();
-
-interface PaginationInfo {
-  page: number;
-  size: number;
-  total: number;
-  offset: number;
-}
-
-interface KhaoSatListResponse {
-  status: string;
-  statusCode: number;
-  message: string;
-  data: {
-    danh_sach_khao_sat: KhaoSatUI[];
-    pagination: PaginationInfo;
-  };
-}
 
 const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
   try {
     const response = await api.makeAuthRequest({
-      url: "/khao-sat",
+      url: "/cau-hoi",
       method: "GET",
       params: {
-        pageIndex: pageIndex,
-        pageSize: pageSize,
+        page: pageIndex,
+        limit: pageSize,
         search: keyword
       }
     });
     
-    console.log("KhaoSat API Response:", response);
-    
+    // Trả về toàn bộ response để component có thể xử lý
     return response;
   } catch (error) {
     console.error("Error in getListEntity:", error);
@@ -44,7 +25,7 @@ const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
 const getDetailEntity = async (id: string) => {
   try {
     const response = await api.makeAuthRequest({
-      url: `/khao-sat/${id}`,
+      url: `/cau-hoi/${id}`,
       method: "GET",
     });
     
@@ -55,9 +36,10 @@ const getDetailEntity = async (id: string) => {
     throw error;
   }
 };
+
 const insertEntity = (entity: any) => {
   return api.makeAuthRequest({
-    url: "/khao-sat",
+    url: "/cau-hoi",
     method: "POST",
     data: entity,
   });
@@ -65,16 +47,40 @@ const insertEntity = (entity: any) => {
 
 const removeEntity = (id: string) => {
   return api.makeAuthRequest({
-    url: `/khao-sat/${id}`,
+    url: `/cau-hoi/${id}`,
     method: "DELETE",
   });
 };
 
 const updateEntity = (id: string, entity: any = {}) => {
   return api.makeAuthRequest({
-    url: `/khao-sat/${id}`,
+    url: `/cau-hoi/${id}`,
     method: "PUT",
     data: entity,
+  });
+};
+
+// API để lấy danh sách câu hỏi theo ID phần khảo sát
+const getListByPhanKhaoSat = async (phanKhaoSatId: string) => {
+  try {
+    const response = await api.makeAuthRequest({
+      url: `/cau-hoi/by-phan-khao-sat/${phanKhaoSatId}`,
+      method: "GET",
+    });
+    
+    return response;
+  } catch (error) {
+    console.error(`Error in getListByPhanKhaoSat for phanKhaoSatId ${phanKhaoSatId}:`, error);
+    throw error;
+  }
+};
+
+// API để cập nhật thứ tự các câu hỏi
+const updateThuTu = (data: any) => {
+  return api.makeAuthRequest({
+    url: "/cau-hoi/update-thu-tu",
+    method: "PUT",
+    data: data,
   });
 };
 
@@ -85,7 +91,7 @@ const getListEntityByVaiTros = async (
   vaiTros: Array<string>
 ) => {
   const ans = await api.makeAuthRequest({
-    url: `/khao-sat/tim-theo-vai-tro?pageSize=${pageSize}&pageIndex=${pageIndex}&keyword=${keyword}`,
+    url: `/cau-hoi/tim-theo-vai-tro?pageSize=${pageSize}&pageIndex=${pageIndex}&keyword=${keyword}`,
     method: "POST",
     data: {
       vai_tro_names: vaiTros,
@@ -94,11 +100,14 @@ const getListEntityByVaiTros = async (
 
   return ans?.data;
 };
-export const KhaoSatService = {
+
+export const CauHoiService = {
   getListEntity,
   getDetailEntity,
   insertEntity,
   updateEntity,
   removeEntity,
   getListEntityByVaiTros,
+  getListByPhanKhaoSat,
+  updateThuTu
 };

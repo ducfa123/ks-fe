@@ -22,6 +22,8 @@ import { ClientContactPage } from "../pages/Client/Contact";
 import ClientLoginPage from "../pages/Client/login";
 import { ClientOrderHistoryPage } from "../pages/Client/OrderHistory";
 import AdminOrderHistoryPage from "../pages/order-history/AdminOrderHistoryPage";
+import { KhaoSatDetailPage } from "../pages/management/khao-sat/detail";
+import { KhaoSatThamGiaPage } from "../pages/Client/ThamGiaKhaoSat/index";
 
 const MainRoutes = [
   // Client routes
@@ -58,6 +60,10 @@ const MainRoutes = [
         path: "order-history",
         element: <ClientOrderHistoryPage />,
       },
+      {
+        path: "khao-sat/:id",
+        element: <KhaoSatThamGiaPage />,
+      },
       { path: "*", element: <Navigate to={RouterLink.CLIENT_HOME} replace /> },
     ],
   },
@@ -83,6 +89,10 @@ const MainRoutes = [
             element: <KhaoSatPage />,
             // module: SystemFeatures.QuanLyNguoiDung,
             // action: [SystemAction.View, SystemAction.Edit],
+          },
+          {
+            path: RouterLink.ADMIN_QUAN_LY_KHAO_SAT + "/:id",
+            element: <KhaoSatDetailPage />,
           },
           {
             path: RouterLink.ADMIN_QUAN_LY_VAI_TRO,

@@ -1,7 +1,22 @@
 import { Column } from "../../../components/tTable/types";
-import { APIServices } from "../../../utils";
+export enum LoaiDapAn {
+  TEXT = 'text',
+  IMAGE = 'image',
+  AUDIO = 'audio',
+  VIDEO = 'video',
+  DATE = 'date',
+}
 
-export type KhaoSatUI = {
+export enum LoaiCauHoi {
+  MULTIPLE_CHOICE = 'Câu hỏi đa lựa chọn',
+  SINGLE_CHOICE = 'Câu hỏi đơn lựa chọn',
+  LIKERT_SCALE = 'Câu hỏi Likert scale',
+  TEXT = 'Câu hỏi tự luận',
+  RATING = 'Câu hỏi đánh giá',
+}
+
+
+export interface KhaoSatUI {
   _id: string;
   tieu_de: string;
   mo_ta: string;
@@ -12,19 +27,59 @@ export type KhaoSatUI = {
   thoi_gian_bat_dau: string;
   thoi_gian_ket_thuc: string;
   gioi_han_phan_hoi: number;
-  so_phan_hoi_hien_tai: number;
   cho_phep_tra_loi_nhieu_lan: boolean;
   cho_phep_an_danh: boolean;
   trang_thai: boolean;
   createdAt: string;
   updatedAt: string;
-  __v: number;
-};
+  so_phan_hoi_hien_tai?: number;
+
+  // Các trường thêm vào để hiển thị
+  nguoi_tao?: string;
+  trang_thai_text?: string;
+  thoi_gian_bat_dau_text?: string;
+  thoi_gian_ket_thuc_text?: string;
+  tieu_de_link?: React.ReactNode;
+}
+
+// Phần khảo sát
+export interface PhanKhaoSat {
+  _id: string;
+  ma_khao_sat: string;
+  tieu_de: string;
+  mo_ta?: string;
+  thu_tu: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Câu hỏi
+export interface CauHoi {
+  _id: string;
+  ma_phan: string;
+  noi_dung: string;
+  loai_cau_hoi: 'radio' | 'checkbox' | 'text' | 'textarea' | 'rating';
+  bat_buoc: boolean;
+  thu_tu: number;
+  dap_an: DapAn[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Đáp án
+export interface DapAn {
+  gia_tri: any;
+  loai_dap_an: any;
+  _id?: string;
+  ma_cau_hoi?: string;
+  noi_dung: string;
+  thu_tu?: number;
+}
+
 
 export const columns: Array<Column> = [
-  { id: "tieu_de", label: "Tiêu đề", minWidth: 200 },
+  { id: "tieu_de_link", label: "Tiêu đề", minWidth: 200 },
   { id: "mo_ta", label: "Mô tả", minWidth: 250 },
-  // Thêm trường người tạo
   { id: "nguoi_tao", label: "Người tạo", minWidth: 120 },
   { id: "thoi_gian_bat_dau_text", label: "Thời gian bắt đầu", minWidth: 150 },
   { id: "thoi_gian_ket_thuc_text", label: "Thời gian kết thúc", minWidth: 150 },
@@ -32,7 +87,6 @@ export const columns: Array<Column> = [
   { id: "trang_thai_text", label: "Trạng thái", minWidth: 120 },
   { id: "actions", label: "Hành động", minWidth: 150, align: "right" },
 ];
-
 export const columnForms = [
   { id: "_id", label: "ID", type: "hidden" },
   { 

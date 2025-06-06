@@ -15,6 +15,7 @@ import { IoAddCircle } from "react-icons/io5";
 import { TFormModal } from "../../../components/tFormModal";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { APIServices } from "../../../utils";
+import { Link } from "react-router-dom";
 
 export const KhaoSatPage = () => {
   const [khaoSats, setKhaoSats] = useState<any[]>([]);
@@ -55,20 +56,30 @@ export const KhaoSatPage = () => {
         requestSize,
         requestText
       );
-  
-      if (response && response.status === "Success" && Array.isArray(response.data)) {
-        setKhaoSats(response.data);
-        setTotal(response.data.length);
+      console.log("KhaoSat API Response:", response); 
+      if (response && response.status === "Success") {
+        const responseData = response.data;
+        setKhaoSats(responseData.danh_sach_khao_sat || []);
+        
+        // Extract pagination data correctly
+        if (responseData.pagination) {
+          setTotal(responseData.pagination.total || 0);
+        } else {
+          setTotal(responseData.danh_sach_khao_sat?.length || 0);
+        }
+        
         setPageSize(requestSize);
         setPageIndex(requestIndex);
         setSearchText(requestText);
       } else {
         error("Dữ liệu không đúng định dạng");
         setKhaoSats([]);
+        setTotal(0);
       }
     } catch (err) {
       error("Không thể tải dữ liệu khảo sát");
       setKhaoSats([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -148,16 +159,25 @@ export const KhaoSatPage = () => {
         await APIServices.KhaoSatService.updateEntity(data._id, updateData);
         success("Cập nhật khảo sát thành công");
       } else {
-        if (!currentUser) {
-          await getCurrentUser();
+        let userId = currentUser?._id;
+        
+        if (!userId) {
+          const response = await APIServices.Auth.getPermission();
+          if (response && response.status === "Success" && response.data) {
+            userId = response.data;
+            setCurrentUser(response.data);
+          }
         }
         
-        const userId = currentUser?._id;
+        if (!userId) {
+          error("Không thể xác định người tạo. Vui lòng đăng nhập lại.");
+          return;
+        }
         
         const newData = {
           tieu_de: data.tieu_de,
           mo_ta: data.mo_ta,
-          ma_nguoi_tao: userId,
+          ma_nguoi_tao: userId, 
           thoi_gian_bat_dau: data.thoi_gian_bat_dau,
           thoi_gian_ket_thuc: data.thoi_gian_ket_thuc,
           gioi_han_phan_hoi: data.gioi_han_phan_hoi || 0,
@@ -170,6 +190,7 @@ export const KhaoSatPage = () => {
         success("Thêm khảo sát thành công");
       }
     } catch (ex) {
+      console.error("Lỗi khi thêm/cập nhật khảo sát:", ex);
       if (data._id) error("Cập nhật khảo sát thất bại");
       else error("Thêm khảo sát thất bại");
     } finally {
@@ -177,8 +198,22 @@ export const KhaoSatPage = () => {
       loadData();
     }
   };
-
   let rowsRender = [...khaoSats];
+  
+  // Thêm trường tiêu đề có link
+  rowsRender = addFieldToItems(rowsRender, "tieu_de_link", (row: any) => {
+    if (!row || !row.tieu_de || !row._id) {
+      return "Không xác định";
+    }
+    return (
+      <Link 
+        to={`/admin/khao-sat/${row._id}`} 
+        style={{ color: '#0A8DEE', textDecoration: 'none' }}
+      >
+        {row.tieu_de}
+      </Link>
+    );
+  });
   
   rowsRender = addFieldToItems(rowsRender, "nguoi_tao", (row: any) => {
     if (!row || !row.ma_nguoi_tao) {
@@ -260,7 +295,7 @@ export const KhaoSatPage = () => {
           pageSize={pageSize}
           pageIndex={pageIndex}
           total={total}
-          // loading={loading}
+          loading={loading}
           onChangePage={(value) => {
             loadData(pageSize, value);
           }}
