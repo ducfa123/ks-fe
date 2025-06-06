@@ -16,7 +16,7 @@ const login = (username = "", password = "") => {
 
 const getPermission = () => {
   return api.makeAuthRequest({
-    url: "/auth/profile",
+    url: "/auth/get-id",
     method: "GET",
     data: {},
   });

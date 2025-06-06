@@ -174,7 +174,10 @@ export const TForm: React.FC<FormComponentProps> = ({
     }
   };
 
-  const formControl = (type, column) => {
+  const formControl = (column) => {
+    if (!column) return null;
+    
+    const type = column.type || "text";
     switch (type) {
       case "images":
         return (
@@ -747,25 +750,25 @@ export const TForm: React.FC<FormComponentProps> = ({
           </FormControl>
         );
 
-      default:
-        return (
-          <FormControl fullWidth>
-            <TTextField
-              sx={{ fontSize: "13px" }}
-              fullWidth
-              label={column.label}
-              name={column.id}
-              type={column.type}
-              value={formData?.[column.id] || ""}
-              onChange={handleChange}
-              variant="outlined"
-              multiline={column.type === "textarea"}
-              minRows={column.type === "textarea" ? 3 : 1}
-              error={!!errors[column.id]}
-              helperText={errors[column.id] ?? ""}
-            />
-          </FormControl>
-        );
+        default:
+          return (
+            <FormControl fullWidth>
+              <TTextField
+                sx={{ fontSize: "13px" }}
+                fullWidth
+                label={column.label}
+                name={column.id}
+                type={column.type}
+                value={formData?.[column.id] || ""}
+                onChange={handleChange}
+                variant="outlined"
+                multiline={column.type === "textarea"}
+                minRows={column.type === "textarea" ? 3 : 1}
+                error={!!errors[column.id]}
+                helperText={errors[column.id] ?? ""}
+              />
+            </FormControl>
+          );
     }
   };
 
@@ -784,8 +787,8 @@ export const TForm: React.FC<FormComponentProps> = ({
     >
       <Grid container spacing={2}>
         {filteredColumns.map((column) => {
-          return formControl(column.type, column);
-        })}
+          return formControl(column);
+})}
       </Grid>
       <Box mt={3} display="flex" justifyContent="flex-end" gap={2}>
         <Button
