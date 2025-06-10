@@ -295,7 +295,7 @@ export const KhaoSatPage = () => {
           pageSize={pageSize}
           pageIndex={pageIndex}
           total={total}
-          loading={loading}
+          // loading={loading}
           onChangePage={(value) => {
             loadData(pageSize, value);
           }}

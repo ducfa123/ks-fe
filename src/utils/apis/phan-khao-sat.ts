@@ -60,7 +60,6 @@ const updateEntity = (id: string, entity: any = {}) => {
   });
 };
 
-// API để lấy danh sách phần khảo sát theo ID khảo sát
 const getListByKhaoSat = async (khaoSatId: string) => {
   try {
     const response = await api.makeAuthRequest({

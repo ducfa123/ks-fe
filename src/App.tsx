@@ -1,3 +1,4 @@
+import React from 'react';
 import { ThemeProvider } from "@mui/material/styles";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -11,7 +12,7 @@ import { persistor, store } from "./redux/store";
 import ThemeRoutes from "./routers";
 import theme from "./theme";
 
-const App = () => {
+function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -27,6 +28,6 @@ const App = () => {
       </PersistGate>
     </Provider>
   );
-};
+}
 
 export default App;

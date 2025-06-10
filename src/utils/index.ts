@@ -2,7 +2,15 @@ import { RouteObject } from "react-router-dom";
 import { Permission, SystemAction, SystemFeatures } from "../types";
 
 export * as APIServices from "./apis";
-export * as StoreService from "./store";
+export { StoreService } from './storeService';
+export { DonViService } from "./apis/don-vi";
+export { GioiHanDonViService } from "./apis/gioi-han-don-vi";
+export { VungMienService } from "./apis/vung-mien";
+export { GioiHanVungMienService } from "./apis/gioi-han";
+export { ThongKeService } from './apis/thong-ke';
+
+// Export any other utilities you might need
+export * from './common';
 
 export const checkPermisison = (
   permission: Array<Permission>,

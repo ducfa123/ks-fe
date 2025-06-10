@@ -1,8 +1,10 @@
 import createApiServices from "./make-api-request";
+import { AppConfigs } from "../../const/config";
 
 const api = createApiServices();
 
 const login = (username = "", password = "") => {
+  console.log("Login attempt for user:", username);
   const body = {
     ten_dang_nhap: username,
     mat_khau: password,
@@ -14,6 +16,20 @@ const login = (username = "", password = "") => {
   });
 };
 
+const register = (userData = {}) => {
+  console.log("Registering new user with data:", userData);
+  
+  const requestBody = {
+    ...userData,
+  };
+  
+  return api.makeRequest({
+    url: "/nguoi-dung/register",
+    method: "POST",
+    data: requestBody,
+  });
+};
+
 const getPermission = () => {
   return api.makeAuthRequest({
     url: "/auth/get-id",
@@ -22,33 +38,29 @@ const getPermission = () => {
   });
 };
 
-// const checkToken = () => {
-//   return api.makeAuthRequest({
-//     url: "authentication/check-token",
-//     method: "GET",
-//     data: {},
-//   });
-// };
-
 const checkToken = () => {
-  return new Promise((resolve) => {
-    const fakeResponse = {
-      data: {
-        token: "fakeAccessToken",
-        user: {
-          _id: "fakeUserId",
-          ho_ten: "Người dùng thử",
-          tai_khoan: "testuser",
-          vai_tro: "admin",
-          phong_ban: "IT",
-          so_du: 1000,
-        },
-      },
-    };
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.log("No token found, continuing without authentication");
+    return Promise.resolve({
+      status: "Success", 
+      message: "No token found",
+      data: null
+    });
+  }
 
-    setTimeout(() => {
-      resolve(fakeResponse);
-    }, 10);
+  console.log("Checking token validity");
+  return api.makeAuthRequest({
+    url: "/auth/profile",
+    method: "GET",
+    data: {},
+  }).catch(err => {
+    console.error("Error checking token:", err);
+    return {
+      status: "Success",
+      message: "Token check failed but continuing",
+      data: null
+    };
   });
 };
 
@@ -78,10 +90,22 @@ const updateUserInfo = async (user: any = {}) => {
   return data?.data;
 };
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return token ? {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  } : {
+    'Content-Type': 'application/json'
+  };
+};
+
 export const Auth = {
   login,
+  register,
   getPermission,
   checkToken,
   changeMyPassword,
   updateUserInfo,
+  getAuthHeaders, // Add this export
 };

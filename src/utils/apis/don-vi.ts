@@ -5,7 +5,36 @@ const api = createApiServices();
 const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
   try {
     const response = await api.makeAuthRequest({
-      url: "/dap-an",
+      url: "/don-vi",
+      method: "GET",
+      options: {
+        params: {
+          page: pageIndex,
+          limit: pageSize,
+          search: keyword
+        }
+      }
+    });
+    
+    // Transform response to match expected structure
+    if (response && response.status === "Success" && response.data?.danh_sach_don_vi) {
+      return {
+        ...response,
+        data: response.data.danh_sach_don_vi
+      };
+    }
+    
+    return response;
+  } catch (error) {
+    console.error("Error in getListEntity:", error);
+    throw error;
+  }
+};
+
+const getListEntityNoAuth = async (pageIndex = 1, pageSize = 10, keyword = "") => {
+  try {
+    const response = await api.makeRequest({
+      url: "/don-vi",
       method: "GET",
       options: {
         params: {
@@ -18,7 +47,7 @@ const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
     
     return response;
   } catch (error) {
-    console.error("Error in getListEntity:", error);
+    console.error("Error in getListEntityNoAuth:", error);
     throw error;
   }
 };
@@ -26,7 +55,7 @@ const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
 const getDetailEntity = async (id: string) => {
   try {
     const response = await api.makeAuthRequest({
-      url: `/dap-an/${id}`,
+      url: `/don-vi/${id}`,
       method: "GET",
     });
     
@@ -40,7 +69,7 @@ const getDetailEntity = async (id: string) => {
 
 const insertEntity = (entity: any) => {
   return api.makeAuthRequest({
-    url: "/dap-an",
+    url: "/don-vi",
     method: "POST",
     data: entity,
   });
@@ -48,14 +77,14 @@ const insertEntity = (entity: any) => {
 
 const removeEntity = (id: string) => {
   return api.makeAuthRequest({
-    url: `/dap-an/${id}`,
+    url: `/don-vi/${id}`,
     method: "DELETE",
   });
 };
 
 const updateEntity = (id: string, entity: any = {}) => {
   return api.makeAuthRequest({
-    url: `/dap-an/${id}`,
+    url: `/don-vi/${id}`,
     method: "PUT",
     data: entity,
   });
@@ -72,7 +101,7 @@ const getListByCauHoi = async (cauHoiId: string) => {
     
 
     const response = await api.makeAuthRequest({
-      url: `/dap-an/by-cau-hoi/${cauHoiId}`,
+      url: `/don-vi/by-cau-hoi/${cauHoiId}`,
       method: "GET",
     });
     
@@ -103,7 +132,7 @@ const getListByCauHoi = async (cauHoiId: string) => {
 
 const updateThuTu = (data: any) => {
   return api.makeAuthRequest({
-    url: "/dap-an/update-thu-tu",
+    url: "/don-vi/update-thu-tu",
     method: "PUT",
     data: data,
   });
@@ -116,7 +145,7 @@ const getListEntityByVaiTros = async (
   vaiTros: Array<string>
 ) => {
   const ans = await api.makeAuthRequest({
-    url: `/dap-an/tim-theo-vai-tro?pageSize=${pageSize}&pageIndex=${pageIndex}&keyword=${keyword}`,
+    url: `/don-vi/tim-theo-vai-tro?pageSize=${pageSize}&pageIndex=${pageIndex}&keyword=${keyword}`,
     method: "POST",
     data: {
       vai_tro_names: vaiTros,
@@ -126,8 +155,9 @@ const getListEntityByVaiTros = async (
   return ans?.data;
 };
 
-export const DapAnService = {
+export const DonViService = {
   getListEntity,
+  getListEntityNoAuth,
   getDetailEntity,
   insertEntity,
   updateEntity,

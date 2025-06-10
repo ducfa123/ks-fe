@@ -4,11 +4,16 @@ import { Box, Typography, Paper, Grid, Button, Chip, Divider,
   Dialog, DialogTitle, DialogContent, DialogActions,
   CircularProgress, Alert } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { APIServices } from "../../../utils";
+import { Auth } from "../../../utils/apis/auth";
 import { useNotifier } from "../../../provider/NotificationProvider";
 import { ArrowBack, NavigateNext, NavigateBefore } from "@mui/icons-material";
 import { KhaoSatUI, PhanKhaoSat, CauHoi, LoaiCauHoi } from "../../management/khao-sat/types";
+import { RegisterForm } from "../../../components/KhaoSat/RegisterForm";
+import { useDispatch, useSelector } from "react-redux";
+import { setUserInfo } from "../../../redux/userSlice";
+import { setClientToken, updateClientInfo } from "../../../redux/auth-client/auth-client.slice";
 
 interface CauTraLoi {
   ma_cau_hoi: string;
@@ -18,7 +23,6 @@ interface CauTraLoi {
   diem_danh_gia?: number;
 }
 
-// Map LoaiCauHoi enum values to lowercase internal types
 const mapLoaiCauHoi = (loaiCauHoi: string): string => {
   switch(loaiCauHoi) {
     case LoaiCauHoi.SINGLE_CHOICE:
@@ -39,7 +43,16 @@ const mapLoaiCauHoi = (loaiCauHoi: string): string => {
 export const KhaoSatThamGiaPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
   const { success, error } = useNotifier();
+  
+  // Redux selectors - MUST be at top level
+  const { isAuthenticated, userInfo } = useSelector((state: any) => state.user || {});
+  const adminAuth = useSelector((state: any) => state.auth || {});
+  const clientAuth = useSelector((state: any) => state.authClient || {});
+  
+  // State variables
   const [khaoSat, setKhaoSat] = useState<KhaoSatUI | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -54,45 +67,89 @@ export const KhaoSatThamGiaPage = () => {
   const [missingQuestions, setMissingQuestions] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [nguoiDung, setNguoiDung] = useState<any>(null);
+  const [needsRegistration, setNeedsRegistration] = useState(false);
+  const [showRegistrationDialog, setShowRegistrationDialog] = useState(false);
+
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
+  const [surveyLoading, setSurveyLoading] = useState(true);
+  const [allDataLoaded, setAllDataLoaded] = useState(false);
+
+  // Prevent browser back during survey
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const isSurveyPage = location.pathname.includes('/khao-sat/');
+      if (isSurveyPage) {
+        e.preventDefault();
+        return;
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
-    loadKhaoSatDetail();
-    // Lấy thông tin người dùng từ localStorage
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
+    if (id) {
       try {
-        setNguoiDung(JSON.parse(userInfo));
-      } catch (e) {
-        console.error("Lỗi khi parse thông tin người dùng:", e);
+        checkAuthStatus().then(() => {
+          if (!needsRegistration) {
+            loadKhaoSatDetail(id);
+          }
+        });
+      } catch (err) {
+        console.error('Error in main useEffect:', err);
+        setSurveyLoading(false);
       }
     }
   }, [id]);
-  
+
   useEffect(() => {
-    if (khaoSat) {
-      loadDanhSachPhan();
+    if (authCheckComplete && !surveyLoading) {
+      setAllDataLoaded(true);
     }
-  }, [khaoSat]);
+  }, [authCheckComplete, surveyLoading]);
 
-  const loadKhaoSatDetail = async () => {
+  const checkAuthStatus = async () => {
     try {
-      setLoading(true);
-      if (!id) {
-        error("Không tìm thấy ID khảo sát");
-        navigate("/");
-        return;
+      // Đơn giản: chỉ kiểm tra clientAuth.isLogin
+      if (clientAuth && clientAuth.isLogin && clientAuth.info && clientAuth.token) {
+        setNguoiDung(clientAuth.info);
+        setNeedsRegistration(false);
+      } else {
+        // Tất cả trường hợp khác đều cần đăng ký/đăng nhập
+        setNeedsRegistration(true);
       }
+    } catch (err) {
+      console.error('checkAuthStatus error:', err);
+      setNeedsRegistration(true);
+    } finally {
+      setAuthCheckComplete(true);
+    }
+  };
 
-      const response = await APIServices.KhaoSatService.getDetailEntity(id);
+  useEffect(() => {
+    if (khaoSat && !needsRegistration) {
+      loadDanhSachPhan(id);
+    }
+  }, [khaoSat, needsRegistration, id]);
+
+  const loadKhaoSatDetail = async (khaoSatId: string) => {
+    try {
+
+      setSurveyLoading(true);
+      
+      const response = await APIServices.KhaoSatService.getDetailEntity(khaoSatId);
+      
       if (response && response.status === "Success" && response.data) {
-        // Kiểm tra khảo sát có đang hoạt động không
         if (!response.data.trang_thai) {
           error("Khảo sát này hiện không hoạt động");
           navigate("/");
           return;
         }
         
-        // Kiểm tra thời gian
         const now = new Date();
         const startDate = new Date(response.data.thoi_gian_bat_dau);
         const endDate = new Date(response.data.thoi_gian_ket_thuc);
@@ -109,7 +166,6 @@ export const KhaoSatThamGiaPage = () => {
           return;
         }
         
-        // Kiểm tra giới hạn phản hồi
         if (response.data.gioi_han_phan_hoi > 0 && 
             response.data.so_phan_hoi_hien_tai >= response.data.gioi_han_phan_hoi) {
           error("Khảo sát này đã đạt giới hạn phản hồi");
@@ -119,22 +175,32 @@ export const KhaoSatThamGiaPage = () => {
         
         setKhaoSat(response.data);
       } else {
-        error("Không tìm thấy thông tin khảo sát");
-        navigate("/");
+        setKhaoSat(null);
       }
     } catch (err) {
-      console.error("Lỗi khi tải thông tin khảo sát:", err);
-      error("Không thể tải thông tin khảo sát");
-      navigate("/");
+      console.error('Error loading khao sat:', err);
+      setKhaoSat(null);
     } finally {
-      setLoading(false);
+      setSurveyLoading(false);
     }
   };
 
-  const loadDanhSachPhan = async () => {
+  const loadDanhSachPhan = async (khaoSatId?: string) => {
     try {
-      if (!id) return;
-      const response = await APIServices.PhanKhaoSatService.getListByKhaoSat(id);
+      const idToUse = khaoSatId || id;
+
+      
+      if (!idToUse) return;
+      
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setNeedsRegistration(true);
+        return;
+      }
+      
+      
+      const response = await APIServices.PhanKhaoSatService.getListByKhaoSat(idToUse);
       
       if (response && response.status === "Success" && Array.isArray(response.data)) {
         const sortedPhan = response.data.sort((a, b) => (a.thu_tu || 0) - (b.thu_tu || 0));
@@ -143,68 +209,111 @@ export const KhaoSatThamGiaPage = () => {
         for (const phan of sortedPhan) {
           await loadDanhSachCauHoi(phan._id);
         }
+      } else {
       }
     } catch (err) {
-      console.error("Lỗi khi tải danh sách phần:", err);
+      console.error('Error loading danh sach phan:', err);
       error("Không thể tải nội dung khảo sát");
+    } finally {
     }
   };
-  
+
   const loadDanhSachCauHoi = async (maPhan: string) => {
     try {
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token available - redirecting to registration');
+        setNeedsRegistration(true);
+        return;
+      }
+
+      
+      if (token && !clientAuth?.token) {
+        dispatch(setClientToken(token));
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
       const response = await APIServices.CauHoiService.getListByPhanKhaoSat(maPhan);
       
       if (response && response.status === "Success" && Array.isArray(response.data)) {
         const sortedCauHoi = response.data.sort((a, b) => (a.thu_tu || 0) - (b.thu_tu || 0));
         
-        // Lưu danh sách câu hỏi vào state
         setDanhSachCauHoi(prev => ({
           ...prev,
           [maPhan]: sortedCauHoi
         }));
         
-        // Khởi tạo câu trả lời trống cho mỗi câu hỏi
         const newAnswers = sortedCauHoi.map(cauHoi => ({
           ma_cau_hoi: cauHoi._id
         }));
         
         setCauTraLoi(prev => [...prev, ...newAnswers]);
         
-        // Tải đáp án cho từng câu hỏi
-        await Promise.all(sortedCauHoi.map(async (cauHoi) => {
+        for (const cauHoi of sortedCauHoi) {
           try {
+            
+            const currentToken = localStorage.getItem('token');
+            if (!currentToken) {
+              console.warn(`Token missing during answer loading for question ${cauHoi._id}`);
+              setNeedsRegistration(true);
+              break;
+            }
+            
             const dapAnResponse = await APIServices.DapAnService.getListByCauHoi(cauHoi._id);
             
             if (dapAnResponse && dapAnResponse.status === "Success" && Array.isArray(dapAnResponse.data)) {
-              // Cập nhật đáp án vào state
               setDanhSachCauHoi(prev => {
                 const updatedCauHoi = {...prev};
                 const cauHoiList = [...(updatedCauHoi[maPhan] || [])];
-                
                 const cauHoiIndex = cauHoiList.findIndex(ch => ch._id === cauHoi._id);
                 if (cauHoiIndex !== -1) {
                   cauHoiList[cauHoiIndex] = {
                     ...cauHoiList[cauHoiIndex],
                     dap_an: dapAnResponse.data
                   };
-                  
                   updatedCauHoi[maPhan] = cauHoiList;
                 }
-                
                 return updatedCauHoi;
               });
+            } else {
             }
+            
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
           } catch (err) {
-            console.error(`Lỗi khi tải đáp án cho câu hỏi ${cauHoi._id}:`, err);
+            console.error(`Failed to load answers for question ${cauHoi._id}:`, err);
+            
+            if (err.response?.status === 403) {
+              console.error('403 Forbidden - Authentication failed for answers');
+              setNeedsRegistration(true);
+              error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+              break;
+            }
           }
-        }));
+        }
+      } else {
       }
     } catch (err) {
-      console.error(`Lỗi khi tải câu hỏi cho phần ${maPhan}:`, err);
+      console.error(`Error loading questions for phan ${maPhan}:`, err);
+      
+      if (err.response?.status === 403) {
+        console.error('403 Forbidden - Authentication failed for questions');
+        setNeedsRegistration(true);
+        error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      } else {
+        error("Không thể tải nội dung khảo sát");
+      }
+    } finally {
     }
   };
 
   const handleNext = () => {
+    if (needsRegistration) {
+      setShowRegistrationDialog(true);
+      return;
+    }
+
     const isPhanValid = validateCurrentPhan();
     if (!isPhanValid) {
       setShowErrorValidation(true);
@@ -214,7 +323,6 @@ export const KhaoSatThamGiaPage = () => {
     setShowErrorValidation(false);
     
     if (activeStep === danhSachPhan.length - 1) {
-      // Đây là phần cuối cùng, hiển thị dialog xác nhận
       setShowConfirmDialog(true);
     } else {
       setActiveStep(prevStep => prevStep + 1);
@@ -230,7 +338,6 @@ export const KhaoSatThamGiaPage = () => {
 
   const validateCurrentPhan = () => {
     if (!danhSachPhan[activeStep] || !danhSachPhan[activeStep]._id) return true;
-    
     const currentPhanId = danhSachPhan[activeStep]._id;
     const cauHoiTrongPhan = danhSachCauHoi[currentPhanId] || [];
     
@@ -240,9 +347,7 @@ export const KhaoSatThamGiaPage = () => {
         const traLoi = cauTraLoi.find(tl => tl.ma_cau_hoi === cauHoi._id);
         
         if (!traLoi) return true;
-        
         const loaiCauHoi = mapLoaiCauHoi(String(cauHoi.loai_cau_hoi));
-        
         if (loaiCauHoi === 'single_choice') {
           return !traLoi.ma_dap_an;
         } else if (loaiCauHoi === 'multiple_choice') {
@@ -285,13 +390,11 @@ export const KhaoSatThamGiaPage = () => {
       if (index !== -1) {
         const currentSelection = newAnswers[index].ma_dap_an_chon || [];
         let newSelection: string[];
-        
         if (checked) {
           newSelection = [...currentSelection, dapAnId];
         } else {
           newSelection = currentSelection.filter(id => id !== dapAnId);
         }
-        
         newAnswers[index] = {
           ...newAnswers[index],
           ma_dap_an_chon: newSelection
@@ -337,17 +440,30 @@ export const KhaoSatThamGiaPage = () => {
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
-      
       if (!khaoSat || !id) {
         error("Không tìm thấy thông tin khảo sát");
         return;
       }
+
+      let userId = nguoiDung?._id || nguoiDung?.id || null;
       
-      // Tạo chi tiết phản hồi theo cấu trúc mới
+      if (!userId && adminAuth?.userInfo) {
+        userId = adminAuth.userInfo._id || adminAuth.userInfo.id || null;
+      }
+      
+      if (!userId && clientAuth?.info) {
+        userId = clientAuth.info._id || clientAuth.info.id || null;
+      }
+
+      if (!userId && !needsRegistration) {
+        error("Không thể xác định thông tin người dùng. Vui lòng đăng nhập lại.");
+        setShowRegistrationDialog(true);
+        return;
+      }
+
       let chiTietPhanHoi: any[] = [];
       
       cauTraLoi.forEach(tl => {
-        // Bỏ qua các câu trả lời không có dữ liệu
         if (!tl.ma_dap_an && 
             (!tl.ma_dap_an_chon || tl.ma_dap_an_chon.length === 0) && 
             !tl.gia_tri_nhap && 
@@ -355,7 +471,6 @@ export const KhaoSatThamGiaPage = () => {
           return;
         }
         
-        // Tìm loại câu hỏi
         let loaiCauHoi = '';
         for (const phanId in danhSachCauHoi) {
           const cauHoiList = danhSachCauHoi[phanId] || [];
@@ -390,8 +505,8 @@ export const KhaoSatThamGiaPage = () => {
       
       const phanHoi = {
         ma_khao_sat: id,
-        ma_nguoi_dung: nguoiDung?._id || null,
-        ghi_chu: "", // Thêm ghi chú nếu cần
+        ma_nguoi_dung: userId || null,
+        ghi_chu: "",
         chi_tiet_phan_hoi: chiTietPhanHoi
       };
       
@@ -404,7 +519,7 @@ export const KhaoSatThamGiaPage = () => {
         error("Không thể gửi phản hồi khảo sát");
       }
     } catch (err) {
-      console.error("Lỗi khi gửi phản hồi:", err);
+      console.error('Submit error:', err);
       error("Có lỗi xảy ra khi gửi phản hồi");
     } finally {
       setSubmitting(false);
@@ -420,6 +535,7 @@ export const KhaoSatThamGiaPage = () => {
     const loaiCauHoi = mapLoaiCauHoi(String(cauHoi.loai_cau_hoi));
     const traLoi = cauTraLoi.find(tl => tl.ma_cau_hoi === cauHoi._id);
     
+
     let content;
     
     switch (loaiCauHoi) {
@@ -523,9 +639,11 @@ export const KhaoSatThamGiaPage = () => {
   };
 
   const renderPhan = (phan: PhanKhaoSat, index: number) => {
-    if (index !== activeStep) return null;
+
     
+    if (index !== activeStep) return null;
     const cauHoiTrongPhan = danhSachCauHoi[phan._id] || [];
+    
     
     return (
       <Box key={phan._id}>
@@ -574,10 +692,106 @@ export const KhaoSatThamGiaPage = () => {
     );
   };
 
-  if (loading) {
+  const handleRegistrationSuccess = async () => {
+    try {
+      const userInfo = localStorage.getItem('userInfo');
+      const token = localStorage.getItem('token');
+            
+      if (userInfo && token) {
+        const parsedUserInfo = JSON.parse(userInfo);
+        
+        const serializableUserInfo = {
+          _id: parsedUserInfo._id,
+          id: parsedUserInfo.id,
+          ten_nguoi_dung: parsedUserInfo.ten_nguoi_dung,
+          ho_ten: parsedUserInfo.ho_ten || parsedUserInfo.ten_nguoi_dung,
+          email: parsedUserInfo.email,
+          tai_khoan: parsedUserInfo.tai_khoan,
+          gioi_tinh: parsedUserInfo.gioi_tinh,
+          ma_don_vi: parsedUserInfo.ma_don_vi,
+          sdt: parsedUserInfo.sdt,
+        };
+        
+        dispatch(setClientToken(token));
+        dispatch(updateClientInfo(serializableUserInfo));
+        dispatch(setUserInfo(serializableUserInfo));
+        
+        setNguoiDung(serializableUserInfo);
+        setNeedsRegistration(false);
+        setShowRegistrationDialog(false);
+        
+        setTimeout(async () => {
+          if (id) {
+            await loadKhaoSatDetail(id);
+            await loadDanhSachPhan(id);
+          }
+        }, 500);
+      }
+    } catch (e) {
+      console.error('Registration success handler error:', e);
+      error("Đã xảy ra lỗi khi xử lý đăng nhập. Vui lòng thử lại.");
+    }
+  };
+
+  useEffect(() => {
+    if (needsRegistration && authCheckComplete) {
+      setShowRegistrationDialog(true);
+    }
+  }, [needsRegistration, authCheckComplete]);
+
+
+  if (surveyLoading && !needsRegistration) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
         <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Đang tải thông tin khảo sát...</Typography>
+      </Box>
+    );
+  }
+
+  if (!khaoSat && !surveyLoading && !needsRegistration) {
+    return (
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+        <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
+          <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom align="center">
+            Không tìm thấy khảo sát
+          </Typography>
+          
+          <Divider sx={{ my: 3 }} />
+          
+          <Typography variant="body1" gutterBottom align="center">
+            Khảo sát này có thể đã bị xóa hoặc không tồn tại.
+          </Typography>
+          
+          <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Button variant="contained" onClick={() => navigate('/')}>
+              Về trang chủ
+            </Button>
+          </Box>
+        </Paper>
+      </Box>
+    );
+  }
+
+  if (needsRegistration && !khaoSat) {
+    return (
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+        <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
+          <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom align="center">
+            Vui lòng đăng nhập để tham gia khảo sát
+          </Typography>
+          
+          <Divider sx={{ my: 3 }} />
+          
+          <Typography variant="body1" gutterBottom align="center">
+            Để tham gia khảo sát này, bạn cần đăng nhập hoặc đăng ký tài khoản.
+          </Typography>
+        </Paper>
+        
+        <RegisterForm 
+          onSuccess={handleRegistrationSuccess} 
+          maKhaoSat={id} 
+        />
       </Box>
     );
   }
@@ -586,56 +800,56 @@ export const KhaoSatThamGiaPage = () => {
     return renderThankYou();
   }
 
-  if (!khaoSat) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography>Không tìm thấy thông tin khảo sát</Typography>
-        <Button 
-          variant="contained" 
-          sx={{ mt: 2 }}
-          onClick={() => navigate('/')}
-        >
-          Về trang chủ
-        </Button>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Button 
-          startIcon={<ArrowBack />} 
-          onClick={() => navigate(-1)}
-          variant="text"
-          sx={{ mr: 2 }}
-        >
-          Quay lại
-        </Button>
-      </Box>
-      
-      <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Typography variant="h5" component="h1" fontWeight="bold" sx={{ mb: 1 }}>
-          {khaoSat.tieu_de}
-        </Typography>
-        
-        {khaoSat.mo_ta && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-              {khaoSat.mo_ta}
+
+      {khaoSat && (
+        <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+          <Typography variant="h5" component="h1" fontWeight="bold" sx={{ mb: 1 }}>
+            {khaoSat.tieu_de}
+          </Typography>
+          
+          {khaoSat.mo_ta && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                {khaoSat.mo_ta}
+              </Typography>
+            </>
+          )}
+        </Paper>
+      )}
+
+      {needsRegistration && (
+        <Box sx={{ mb: 4 }}>
+          <Paper sx={{ p: 3, borderRadius: 2, bgcolor: '#f8f8f8' }}>
+            <Typography variant="subtitle1" gutterBottom color="primary">
+              Đăng nhập để tham gia khảo sát
             </Typography>
-          </>
-        )}
-      </Paper>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Bạn cần đăng nhập hoặc đăng ký để có thể gửi phản hồi cho khảo sát này.
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={() => setShowRegistrationDialog(true)}
+            >
+              Đăng nhập / Đăng ký
+            </Button>
+          </Paper>
+        </Box>
+      )}
       
-      <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-        {danhSachPhan.map((phan, index) => (
-          <Step key={phan._id}>
-            <StepLabel>{`Phần ${index + 1}`}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+      {danhSachPhan.length > 0 && (
+        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+          {danhSachPhan.map((phan, index) => (
+            <Step key={phan._id}>
+              <StepLabel>{`Phần ${index + 1}`}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      )}
       
       {showErrorValidation && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -645,24 +859,26 @@ export const KhaoSatThamGiaPage = () => {
       
       {danhSachPhan.map((phan, index) => renderPhan(phan, index))}
       
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-        <Button
-          variant="outlined"
-          onClick={handleBack}
-          startIcon={<NavigateBefore />}
-          disabled={activeStep === 0}
-        >
-          Quay lại
-        </Button>
-        
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          endIcon={activeStep === danhSachPhan.length - 1 ? undefined : <NavigateNext />}
-        >
-          {activeStep === danhSachPhan.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
-        </Button>
-      </Box>
+      {danhSachPhan.length > 0 && !needsRegistration && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Button
+            variant="outlined"
+            onClick={handleBack}
+            startIcon={<NavigateBefore />}
+            disabled={activeStep === 0}
+          >
+            Quay lại
+          </Button>
+          
+          <Button
+            variant="contained"
+            onClick={handleNext}
+            endIcon={activeStep === danhSachPhan.length - 1 ? undefined : <NavigateNext />}
+          >
+            {activeStep === danhSachPhan.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
+          </Button>
+        </Box>
+      )}
       
       <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)}>
         <DialogTitle>Xác nhận gửi phản hồi</DialogTitle>
@@ -681,6 +897,24 @@ export const KhaoSatThamGiaPage = () => {
             {submitting ? <CircularProgress size={24} /> : 'Gửi phản hồi'}
           </Button>
         </DialogActions>
+      </Dialog>
+      
+      <Dialog 
+        open={showRegistrationDialog} 
+        onClose={() => {
+          if (!needsRegistration) {
+            setShowRegistrationDialog(false);
+          }
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent>
+          <RegisterForm 
+            onSuccess={handleRegistrationSuccess} 
+            maKhaoSat={id} 
+          />
+        </DialogContent>
       </Dialog>
     </Box>
   );

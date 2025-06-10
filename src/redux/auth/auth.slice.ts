@@ -68,6 +68,7 @@ export const authSlice = createSlice({
     setToken: (state: AuthState, action: PayloadAction<string>) => {
       state.token = action.payload;
       StoreService.setAuthToken(action.payload);
+      console.log('Auth token set in Redux:', action.payload ? 'TOKEN_SET' : 'TOKEN_CLEARED');
     },
     setIdToken: (state: AuthState, action: PayloadAction<string>) => {
       state.id_token = action.payload;
@@ -93,6 +94,11 @@ export const authSlice = createSlice({
     },
   },
 });
+
+// Add a selector to easily check if user is logged in
+export const selectIsLoggedIn = (state: { auth: AuthState }) => state.auth.isLogin;
+export const selectAuthToken = (state: { auth: AuthState }) => state.auth.token;
+export const selectUserInfo = (state: { auth: AuthState }) => state.auth.info;
 
 export const {
   loginSuccess,

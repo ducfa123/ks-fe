@@ -14,7 +14,6 @@ const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
       }
     });
     
-    // Trả về toàn bộ response để component có thể xử lý
     return response;
   } catch (error) {
     console.error("Error in getListEntity:", error);
@@ -29,7 +28,6 @@ const getDetailEntity = async (id: string) => {
       method: "GET",
     });
     
-    // Trả về toàn bộ response để component có thể kiểm tra status
     return response;
   } catch (error) {
     console.error("Error in getDetailEntity:", error);
@@ -91,6 +89,57 @@ const getListEntityByVaiTros = async (
   return ans?.data;
 };
 
+const getResponsesByUser = async (userId: string, pageIndex = 1, pageSize = 10) => {
+  try {
+    const response = await api.makeAuthRequest({
+      url: `/phan-hoi/nguoi-dung/${userId}`,
+      method: "GET",
+      params: {
+        page: pageIndex,
+        limit: pageSize
+      }
+    });
+    
+    return response;
+  } catch (error) {
+    console.error("Error in getResponsesByUser:", error);
+    throw error;
+  }
+};
+
+const getResponsesBySurvey = async (surveyId: string, pageIndex = 1, pageSize = 10, keyword = "") => {
+  try {
+    const response = await api.makeAuthRequest({
+      url: `/phan-hoi/khao-sat/${surveyId}`,
+      method: "GET",
+      params: {
+        page: pageIndex,
+        limit: pageSize,
+        search: keyword
+      }
+    });
+    
+    return response;
+  } catch (error) {
+    console.error("Error in getResponsesBySurvey:", error);
+    throw error;
+  }
+};
+
+const getResponseDetails = async (responseId: string) => {
+  try {
+    const response = await api.makeAuthRequest({
+      url: `/phan-hoi/chi-tiet/${responseId}`,
+      method: "GET",
+    });
+    
+    return response;
+  } catch (error) {
+    console.error("Error in getResponseDetails:", error);
+    throw error;
+  }
+};
+
 export const PhanHoiService = {
   getListEntity,
   getDetailEntity,
@@ -98,4 +147,7 @@ export const PhanHoiService = {
   updateEntity,
   removeEntity,
   getListEntityByVaiTros,
+  getResponsesByUser,
+  getResponsesBySurvey,
+  getResponseDetails
 };

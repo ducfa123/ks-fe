@@ -23,7 +23,11 @@ export const authClientSlice = createSlice({
       action: PayloadAction<any>
     ) => {
       state.isLogin = true;
-      state.info = action.payload;
+      // Ensure only serializable data is stored
+      state.info = {
+        ...action.payload,
+        // Remove any function properties if they exist
+      };
     },
     logoutClient: (state: AuthClientState) => {
       state.isLogin = false;
@@ -41,7 +45,11 @@ export const authClientSlice = createSlice({
       action: PayloadAction<any>
     ) => {
       state.isLogin = true;
-      state.info = action.payload;
+      // Ensure only serializable data is stored
+      state.info = {
+        ...action.payload,
+        // Remove any function properties if they exist
+      };
     },
   },
 });

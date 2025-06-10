@@ -55,6 +55,7 @@ export interface PhanKhaoSat {
 
 // Câu hỏi
 export interface CauHoi {
+  ma_phan_khao_sat(ma_phan_khao_sat: any): unknown;
   _id: string;
   ma_phan: string;
   noi_dung: string;
