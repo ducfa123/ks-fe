@@ -13,7 +13,6 @@ import { KhaoSatUI, PhanKhaoSat, CauHoi, LoaiCauHoi } from "../../management/kha
 import { RegisterForm } from "../../../components/KhaoSat/RegisterForm";
 import { useDispatch, useSelector } from "react-redux";
 import { setUserInfo } from "../../../redux/userSlice";
-import { setClientToken, updateClientInfo } from "../../../redux/auth-client/auth-client.slice";
 
 interface CauTraLoi {
   ma_cau_hoi: string;
@@ -23,6 +22,7 @@ interface CauTraLoi {
   diem_danh_gia?: number;
 }
 
+// Map LoaiCauHoi enum values to lowercase internal types
 const mapLoaiCauHoi = (loaiCauHoi: string): string => {
   switch(loaiCauHoi) {
     case LoaiCauHoi.SINGLE_CHOICE:
@@ -46,13 +46,6 @@ export const KhaoSatThamGiaPage = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { success, error } = useNotifier();
-  
-  // Redux selectors - MUST be at top level
-  const { isAuthenticated, userInfo } = useSelector((state: any) => state.user || {});
-  const adminAuth = useSelector((state: any) => state.auth || {});
-  const clientAuth = useSelector((state: any) => state.authClient || {});
-  
-  // State variables
   const [khaoSat, setKhaoSat] = useState<KhaoSatUI | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -70,60 +63,126 @@ export const KhaoSatThamGiaPage = () => {
   const [needsRegistration, setNeedsRegistration] = useState(false);
   const [showRegistrationDialog, setShowRegistrationDialog] = useState(false);
 
+  // Check for existing authentication from Redux store
+  const { isAuthenticated, userInfo } = useSelector((state: any) => state.user || {});
+  const adminAuth = useSelector((state: any) => state.auth || {});
+  const clientAuth = useSelector((state: any) => state.authClient || {});
+
+  // Split loading states to avoid redirect issues
   const [authCheckComplete, setAuthCheckComplete] = useState(false);
   const [surveyLoading, setSurveyLoading] = useState(true);
   const [allDataLoaded, setAllDataLoaded] = useState(false);
 
-  // Prevent browser back during survey
+  // Prevent auto-redirects on survey pages
   useEffect(() => {
+    // This will override any redirects attempted by other hooks
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       const isSurveyPage = location.pathname.includes('/khao-sat/');
       if (isSurveyPage) {
+        // This prevents the page from being redirected while loading
         e.preventDefault();
         return;
       }
     };
     
+    // Attach the event listener
     window.addEventListener('beforeunload', handleBeforeUnload);
     
+    // Clean up
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [location.pathname]);
 
+  // Load only the survey details first, completely separate from auth check
   useEffect(() => {
     if (id) {
       try {
-        checkAuthStatus().then(() => {
-          if (!needsRegistration) {
-            loadKhaoSatDetail(id);
-          }
-        });
+        loadKhaoSatDetail(id);
       } catch (err) {
-        console.error('Error in main useEffect:', err);
-        setSurveyLoading(false);
+        console.error("Failed to load survey details:", err);
+        // Don't redirect here, just show an error message in the UI
       }
     }
   }, [id]);
 
+  // Check authentication status separately without blocking survey loading
+  useEffect(() => {
+    try {
+      checkAuthStatus();
+    } catch (err) {
+      console.error("Failed to check auth status:", err);
+      // Always default to needing registration if auth check fails
+      setNeedsRegistration(true);
+    }
+  }, []);
+
+  // Track when all data is loaded
   useEffect(() => {
     if (authCheckComplete && !surveyLoading) {
       setAllDataLoaded(true);
     }
   }, [authCheckComplete, surveyLoading]);
 
+  // Check authentication status without redirecting
   const checkAuthStatus = async () => {
     try {
-      // Đơn giản: chỉ kiểm tra clientAuth.isLogin
-      if (clientAuth && clientAuth.isLogin && clientAuth.info && clientAuth.token) {
-        setNguoiDung(clientAuth.info);
+      // First check if user is already authenticated in any part of the app
+      if (isAuthenticated && userInfo) {
+        setNguoiDung(userInfo);
         setNeedsRegistration(false);
+        setAuthCheckComplete(true);
+        return;
+      }
+      
+      // Check admin authentication
+      if (adminAuth && adminAuth.isLoggedIn && adminAuth.userInfo) {
+        setNguoiDung(adminAuth.userInfo);
+        dispatch(setUserInfo(adminAuth.userInfo));
+        setNeedsRegistration(false);
+        setAuthCheckComplete(true);
+        return;
+      }
+      
+      // Check client authentication
+      if (clientAuth && clientAuth.isLoggedIn && clientAuth.userInfo) {
+        setNguoiDung(clientAuth.userInfo);
+        dispatch(setUserInfo(clientAuth.userInfo));
+        setNeedsRegistration(false);
+        setAuthCheckComplete(true);
+        return;
+      }
+
+      // If no authentication found in Redux, check localStorage token
+      const token = localStorage.getItem('token');
+      const storedUserInfo = localStorage.getItem('userInfo');
+      
+      if (token && storedUserInfo) {
+        try {
+          const userData = JSON.parse(storedUserInfo);
+          if (userData) {
+            // Make sure we have at least an _id
+            if (!userData._id && userData.id) {
+              userData._id = userData.id; // Use id as fallback
+            }
+            
+            setNguoiDung(userData);
+            dispatch(setUserInfo(userData));
+            setNeedsRegistration(false);
+          } else {
+            setNeedsRegistration(true);
+          }
+        } catch (e) {
+          console.error("Error parsing stored user info:", e);
+          setNeedsRegistration(true);
+        }
       } else {
-        // Tất cả trường hợp khác đều cần đăng ký/đăng nhập
+        // No token found, set needs registration to true
+        console.log("No token found, setting needsRegistration to true");
         setNeedsRegistration(true);
       }
     } catch (err) {
-      console.error('checkAuthStatus error:', err);
+      console.error("Error checking auth status:", err);
       setNeedsRegistration(true);
     } finally {
       setAuthCheckComplete(true);
@@ -131,25 +190,25 @@ export const KhaoSatThamGiaPage = () => {
   };
 
   useEffect(() => {
-    if (khaoSat && !needsRegistration) {
-      loadDanhSachPhan(id);
+    if (khaoSat) {
+      loadDanhSachPhan();
     }
-  }, [khaoSat, needsRegistration, id]);
+  }, [khaoSat]);
 
   const loadKhaoSatDetail = async (khaoSatId: string) => {
     try {
-
       setSurveyLoading(true);
       
       const response = await APIServices.KhaoSatService.getDetailEntity(khaoSatId);
-      
       if (response && response.status === "Success" && response.data) {
+        // Kiểm tra khảo sát có đang hoạt động không
         if (!response.data.trang_thai) {
           error("Khảo sát này hiện không hoạt động");
           navigate("/");
           return;
         }
         
+        // Kiểm tra thời gian
         const now = new Date();
         const startDate = new Date(response.data.thoi_gian_bat_dau);
         const endDate = new Date(response.data.thoi_gian_ket_thuc);
@@ -166,6 +225,7 @@ export const KhaoSatThamGiaPage = () => {
           return;
         }
         
+        // Kiểm tra giới hạn phản hồi
         if (response.data.gioi_han_phan_hoi > 0 && 
             response.data.so_phan_hoi_hien_tai >= response.data.gioi_han_phan_hoi) {
           error("Khảo sát này đã đạt giới hạn phản hồi");
@@ -174,33 +234,29 @@ export const KhaoSatThamGiaPage = () => {
         }
         
         setKhaoSat(response.data);
+        try {
+          // Load sections after we have the survey data
+          await loadDanhSachPhan(khaoSatId);
+        } catch (err) {
+          console.error("Error loading survey sections:", err);
+          // Continue anyway, showing what we have
+        }
       } else {
+        console.error("Error loading survey:", response);
         setKhaoSat(null);
       }
     } catch (err) {
-      console.error('Error loading khao sat:', err);
+      console.error("Error loading survey:", err);
       setKhaoSat(null);
     } finally {
       setSurveyLoading(false);
     }
   };
 
-  const loadDanhSachPhan = async (khaoSatId?: string) => {
+  const loadDanhSachPhan = async () => {
     try {
-      const idToUse = khaoSatId || id;
-
-      
-      if (!idToUse) return;
-      
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        setNeedsRegistration(true);
-        return;
-      }
-      
-      
-      const response = await APIServices.PhanKhaoSatService.getListByKhaoSat(idToUse);
+      if (!id) return;
+      const response = await APIServices.PhanKhaoSatService.getListByKhaoSat(id);
       
       if (response && response.status === "Success" && Array.isArray(response.data)) {
         const sortedPhan = response.data.sort((a, b) => (a.thu_tu || 0) - (b.thu_tu || 0));
@@ -209,60 +265,38 @@ export const KhaoSatThamGiaPage = () => {
         for (const phan of sortedPhan) {
           await loadDanhSachCauHoi(phan._id);
         }
-      } else {
       }
     } catch (err) {
-      console.error('Error loading danh sach phan:', err);
+      console.error("Lỗi khi tải danh sách phần:", err);
       error("Không thể tải nội dung khảo sát");
-    } finally {
     }
   };
 
   const loadDanhSachCauHoi = async (maPhan: string) => {
     try {
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('No token available - redirecting to registration');
-        setNeedsRegistration(true);
-        return;
-      }
-
-      
-      if (token && !clientAuth?.token) {
-        dispatch(setClientToken(token));
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
       const response = await APIServices.CauHoiService.getListByPhanKhaoSat(maPhan);
       
       if (response && response.status === "Success" && Array.isArray(response.data)) {
         const sortedCauHoi = response.data.sort((a, b) => (a.thu_tu || 0) - (b.thu_tu || 0));
-        
+        // Lưu danh sách câu hỏi vào state
         setDanhSachCauHoi(prev => ({
           ...prev,
           [maPhan]: sortedCauHoi
         }));
         
+        // Khởi tạo câu trả lời trống cho mỗi câu hỏi
         const newAnswers = sortedCauHoi.map(cauHoi => ({
           ma_cau_hoi: cauHoi._id
         }));
         
         setCauTraLoi(prev => [...prev, ...newAnswers]);
         
-        for (const cauHoi of sortedCauHoi) {
+        // Tải đáp án cho từng câu hỏi
+        await Promise.all(sortedCauHoi.map(async (cauHoi) => {
           try {
-            
-            const currentToken = localStorage.getItem('token');
-            if (!currentToken) {
-              console.warn(`Token missing during answer loading for question ${cauHoi._id}`);
-              setNeedsRegistration(true);
-              break;
-            }
-            
             const dapAnResponse = await APIServices.DapAnService.getListByCauHoi(cauHoi._id);
-            
             if (dapAnResponse && dapAnResponse.status === "Success" && Array.isArray(dapAnResponse.data)) {
+              // Cập nhật đáp án vào state
               setDanhSachCauHoi(prev => {
                 const updatedCauHoi = {...prev};
                 const cauHoiList = [...(updatedCauHoi[maPhan] || [])];
@@ -276,39 +310,19 @@ export const KhaoSatThamGiaPage = () => {
                 }
                 return updatedCauHoi;
               });
-            } else {
             }
-            
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
           } catch (err) {
-            console.error(`Failed to load answers for question ${cauHoi._id}:`, err);
-            
-            if (err.response?.status === 403) {
-              console.error('403 Forbidden - Authentication failed for answers');
-              setNeedsRegistration(true);
-              error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-              break;
-            }
+            console.error(`Lỗi khi tải đáp án cho câu hỏi ${cauHoi._id}:`, err);
           }
-        }
-      } else {
+        }));
       }
     } catch (err) {
-      console.error(`Error loading questions for phan ${maPhan}:`, err);
-      
-      if (err.response?.status === 403) {
-        console.error('403 Forbidden - Authentication failed for questions');
-        setNeedsRegistration(true);
-        error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-      } else {
-        error("Không thể tải nội dung khảo sát");
-      }
-    } finally {
+      console.error(`Lỗi khi tải câu hỏi cho phần ${maPhan}:`, err);
     }
   };
 
   const handleNext = () => {
+    // If user is not authenticated, show registration dialog
     if (needsRegistration) {
       setShowRegistrationDialog(true);
       return;
@@ -323,6 +337,7 @@ export const KhaoSatThamGiaPage = () => {
     setShowErrorValidation(false);
     
     if (activeStep === danhSachPhan.length - 1) {
+      // Đây là phần cuối cùng, hiển thị dialog xác nhận
       setShowConfirmDialog(true);
     } else {
       setActiveStep(prevStep => prevStep + 1);
@@ -445,25 +460,29 @@ export const KhaoSatThamGiaPage = () => {
         return;
       }
 
+      // Get user ID from any available source - with fallbacks for various property names
       let userId = nguoiDung?._id || nguoiDung?.id || null;
       
       if (!userId && adminAuth?.userInfo) {
         userId = adminAuth.userInfo._id || adminAuth.userInfo.id || null;
       }
       
-      if (!userId && clientAuth?.info) {
-        userId = clientAuth.info._id || clientAuth.info.id || null;
+      if (!userId && clientAuth?.userInfo) {
+        userId = clientAuth.userInfo._id || clientAuth.userInfo.id || null;
       }
 
+      // If still no userId but we're supposed to be authenticated, show error
       if (!userId && !needsRegistration) {
         error("Không thể xác định thông tin người dùng. Vui lòng đăng nhập lại.");
         setShowRegistrationDialog(true);
         return;
       }
 
+      // Tạo chi tiết phản hồi theo cấu trúc mới
       let chiTietPhanHoi: any[] = [];
       
       cauTraLoi.forEach(tl => {
+        // Bỏ qua các câu trả lời không có dữ liệu
         if (!tl.ma_dap_an && 
             (!tl.ma_dap_an_chon || tl.ma_dap_an_chon.length === 0) && 
             !tl.gia_tri_nhap && 
@@ -471,6 +490,7 @@ export const KhaoSatThamGiaPage = () => {
           return;
         }
         
+        // Tìm loại câu hỏi
         let loaiCauHoi = '';
         for (const phanId in danhSachCauHoi) {
           const cauHoiList = danhSachCauHoi[phanId] || [];
@@ -506,7 +526,7 @@ export const KhaoSatThamGiaPage = () => {
       const phanHoi = {
         ma_khao_sat: id,
         ma_nguoi_dung: userId || null,
-        ghi_chu: "",
+        ghi_chu: "", // Thêm ghi chú nếu cần
         chi_tiet_phan_hoi: chiTietPhanHoi
       };
       
@@ -519,7 +539,7 @@ export const KhaoSatThamGiaPage = () => {
         error("Không thể gửi phản hồi khảo sát");
       }
     } catch (err) {
-      console.error('Submit error:', err);
+      console.error("Lỗi khi gửi phản hồi:", err);
       error("Có lỗi xảy ra khi gửi phản hồi");
     } finally {
       setSubmitting(false);
@@ -535,7 +555,6 @@ export const KhaoSatThamGiaPage = () => {
     const loaiCauHoi = mapLoaiCauHoi(String(cauHoi.loai_cau_hoi));
     const traLoi = cauTraLoi.find(tl => tl.ma_cau_hoi === cauHoi._id);
     
-
     let content;
     
     switch (loaiCauHoi) {
@@ -639,11 +658,8 @@ export const KhaoSatThamGiaPage = () => {
   };
 
   const renderPhan = (phan: PhanKhaoSat, index: number) => {
-
-    
     if (index !== activeStep) return null;
     const cauHoiTrongPhan = danhSachCauHoi[phan._id] || [];
-    
     
     return (
       <Box key={phan._id}>
@@ -692,55 +708,56 @@ export const KhaoSatThamGiaPage = () => {
     );
   };
 
-  const handleRegistrationSuccess = async () => {
-    try {
-      const userInfo = localStorage.getItem('userInfo');
-      const token = localStorage.getItem('token');
-            
-      if (userInfo && token) {
+  const handleRegistrationSuccess = () => {
+    // After successful registration, load the user info from localStorage
+    const userInfo = localStorage.getItem('userInfo');
+    const token = localStorage.getItem('token');
+    
+    console.log("Registration success handler called");
+    console.log("UserInfo from localStorage:", userInfo);
+    console.log("Token from localStorage:", token);
+    
+    if (userInfo && token) {
+      try {
         const parsedUserInfo = JSON.parse(userInfo);
         
-        const serializableUserInfo = {
-          _id: parsedUserInfo._id,
-          id: parsedUserInfo.id,
-          ten_nguoi_dung: parsedUserInfo.ten_nguoi_dung,
-          ho_ten: parsedUserInfo.ho_ten || parsedUserInfo.ten_nguoi_dung,
-          email: parsedUserInfo.email,
-          tai_khoan: parsedUserInfo.tai_khoan,
-          gioi_tinh: parsedUserInfo.gioi_tinh,
-          ma_don_vi: parsedUserInfo.ma_don_vi,
-          sdt: parsedUserInfo.sdt,
-        };
-        
-        dispatch(setClientToken(token));
-        dispatch(updateClientInfo(serializableUserInfo));
-        dispatch(setUserInfo(serializableUserInfo));
-        
-        setNguoiDung(serializableUserInfo);
+        // Update local state
+        setNguoiDung(parsedUserInfo);
         setNeedsRegistration(false);
+        
+        // Close the dialog
         setShowRegistrationDialog(false);
         
-        setTimeout(async () => {
-          if (id) {
-            await loadKhaoSatDetail(id);
-            await loadDanhSachPhan(id);
-          }
-        }, 500);
+        // Show success message
+        success("Đăng ký thành công! Bạn có thể tiếp tục làm khảo sát.");
+        
+        // If the survey is not loaded yet, try to load it
+        if (!khaoSat && id) {
+          loadKhaoSatDetail(id);
+        }
+        
+        // IMPORTANT: Never reload the page - this causes an infinite loop
+        // window.location.reload(); - REMOVE THIS LINE
+      } catch (e) {
+        console.error("Lỗi khi parse thông tin người dùng:", e);
+        error("Có lỗi xảy ra khi xử lý thông tin đăng ký.");
       }
-    } catch (e) {
-      console.error('Registration success handler error:', e);
-      error("Đã xảy ra lỗi khi xử lý đăng nhập. Vui lòng thử lại.");
+    } else {
+      console.error("No userInfo or token found in localStorage after successful registration");
+      error("Đăng ký thành công nhưng không thể lấy thông tin người dùng");
     }
   };
 
+  // Modified to show login form when no token
   useEffect(() => {
+    // If user needs registration and we've finished checking auth, show the login form
     if (needsRegistration && authCheckComplete) {
+      console.log("User needs registration, showing login form");
       setShowRegistrationDialog(true);
     }
   }, [needsRegistration, authCheckComplete]);
 
-
-  if (surveyLoading && !needsRegistration) {
+  if (surveyLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
         <CircularProgress />
@@ -749,31 +766,8 @@ export const KhaoSatThamGiaPage = () => {
     );
   }
 
-  if (!khaoSat && !surveyLoading && !needsRegistration) {
-    return (
-      <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
-        <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
-          <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom align="center">
-            Không tìm thấy khảo sát
-          </Typography>
-          
-          <Divider sx={{ my: 3 }} />
-          
-          <Typography variant="body1" gutterBottom align="center">
-            Khảo sát này có thể đã bị xóa hoặc không tồn tại.
-          </Typography>
-          
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
-            <Button variant="contained" onClick={() => navigate('/')}>
-              Về trang chủ
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
-    );
-  }
-
-  if (needsRegistration && !khaoSat) {
+  // Replace the "not found" error with registration form
+  if (!khaoSat) {
     return (
       <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
         <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
@@ -789,7 +783,16 @@ export const KhaoSatThamGiaPage = () => {
         </Paper>
         
         <RegisterForm 
-          onSuccess={handleRegistrationSuccess} 
+          onSuccess={() => {
+            console.log("RegisterForm onSuccess callback executed");
+            
+            // Instead of a page reload, try to load the survey directly
+            if (id) {
+              // CRITICAL FIX: Use handleRegistrationSuccess instead of calling loadKhaoSatDetail directly
+              // This ensures consistent state updates
+              handleRegistrationSuccess();
+            }
+          }} 
           maKhaoSat={id} 
         />
       </Box>
@@ -802,24 +805,33 @@ export const KhaoSatThamGiaPage = () => {
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <Button 
+          startIcon={<ArrowBack />} 
+          onClick={() => navigate(-1)}
+          variant="text"
+          sx={{ mr: 2 }}
+        >
+          Quay lại
+        </Button>
+      </Box>
+      
+      <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+        <Typography variant="h5" component="h1" fontWeight="bold" sx={{ mb: 1 }}>
+          {khaoSat.tieu_de}
+        </Typography>
+        
+        {khaoSat.mo_ta && (
+          <>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+              {khaoSat.mo_ta}
+            </Typography>
+          </>
+        )}
+      </Paper>
 
-      {khaoSat && (
-        <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-          <Typography variant="h5" component="h1" fontWeight="bold" sx={{ mb: 1 }}>
-            {khaoSat.tieu_de}
-          </Typography>
-          
-          {khaoSat.mo_ta && (
-            <>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                {khaoSat.mo_ta}
-              </Typography>
-            </>
-          )}
-        </Paper>
-      )}
-
+      {/* Show a message if login is required */}
       {needsRegistration && (
         <Box sx={{ mb: 4 }}>
           <Paper sx={{ p: 3, borderRadius: 2, bgcolor: '#f8f8f8' }}>
@@ -841,15 +853,13 @@ export const KhaoSatThamGiaPage = () => {
         </Box>
       )}
       
-      {danhSachPhan.length > 0 && (
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-          {danhSachPhan.map((phan, index) => (
-            <Step key={phan._id}>
-              <StepLabel>{`Phần ${index + 1}`}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-      )}
+      <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+        {danhSachPhan.map((phan, index) => (
+          <Step key={phan._id}>
+            <StepLabel>{`Phần ${index + 1}`}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
       
       {showErrorValidation && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -859,27 +869,26 @@ export const KhaoSatThamGiaPage = () => {
       
       {danhSachPhan.map((phan, index) => renderPhan(phan, index))}
       
-      {danhSachPhan.length > 0 && !needsRegistration && (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-          <Button
-            variant="outlined"
-            onClick={handleBack}
-            startIcon={<NavigateBefore />}
-            disabled={activeStep === 0}
-          >
-            Quay lại
-          </Button>
-          
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            endIcon={activeStep === danhSachPhan.length - 1 ? undefined : <NavigateNext />}
-          >
-            {activeStep === danhSachPhan.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
-          </Button>
-        </Box>
-      )}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+        <Button
+          variant="outlined"
+          onClick={handleBack}
+          startIcon={<NavigateBefore />}
+          disabled={activeStep === 0}
+        >
+          Quay lại
+        </Button>
+        
+        <Button
+          variant="contained"
+          onClick={handleNext}
+          endIcon={activeStep === danhSachPhan.length - 1 ? undefined : <NavigateNext />}
+        >
+          {activeStep === danhSachPhan.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
+        </Button>
+      </Box>
       
+      {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)}>
         <DialogTitle>Xác nhận gửi phản hồi</DialogTitle>
         <DialogContent>
@@ -899,9 +908,11 @@ export const KhaoSatThamGiaPage = () => {
         </DialogActions>
       </Dialog>
       
+      {/* Registration Dialog */}
       <Dialog 
         open={showRegistrationDialog} 
         onClose={() => {
+          // Don't close dialog if the user hasn't logged in yet and needs registration
           if (!needsRegistration) {
             setShowRegistrationDialog(false);
           }
@@ -911,7 +922,10 @@ export const KhaoSatThamGiaPage = () => {
       >
         <DialogContent>
           <RegisterForm 
-            onSuccess={handleRegistrationSuccess} 
+            onSuccess={() => {
+              console.log("Dialog RegisterForm onSuccess callback executed");
+              handleRegistrationSuccess();
+            }} 
             maKhaoSat={id} 
           />
         </DialogContent>

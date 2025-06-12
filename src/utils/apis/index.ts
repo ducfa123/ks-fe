@@ -3,15 +3,16 @@ import { PhanKhaoSatService } from "./phan-khao-sat";
 import { CauHoiService } from "./cau-hoi";
 import { DapAnService } from "./dap-an";
 import { PhanHoiService } from "./phan-hoi";
-import { ThongKeService } from "./thong-ke";
+// Import other services as needed
 
+// Export all services
 export {
   KhaoSatService,
   PhanKhaoSatService,
   CauHoiService,
   DapAnService,
   PhanHoiService,
-  ThongKeService,
+  // Export other services as needed
 };
 
 export * from "./auth";
@@ -28,21 +29,3 @@ export * from "./tai-khoan-san-pham";
 export * from "./client";
 export * from "./lich-su-don-hang";
 export * from "./phan-hoi";
-export * from "./don-vi";
-export * from "./gioi-han-don-vi";
-export * from "./vung-mien";
-export * from "./gioi-han-vung-mien";
-
-export { DonViService } from "./don-vi";
-export { GioiHanDonViService } from "./gioi-han-don-vi";
-export { VungMienService } from "./vung-mien";
-export { GioiHanVungMienService } from "./gioi-han";
-
-export const APIServices = {
-  KhaoSatService,
-  PhanKhaoSatService,
-  CauHoiService,
-  DapAnService,
-  PhanHoiService,
-  ThongKeService,
-};

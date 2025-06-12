@@ -10,14 +10,9 @@ import {
   Grid,
   Divider,
   Tabs,
-  Tab,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel
+  Tab
 } from '@mui/material';
 import { Auth } from '../../utils/apis/auth';
-import {  DonViService } from '../../utils/apis/don-vi';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserInfo } from '../../redux/userSlice';
 import { loginSuccess, setToken } from '../../redux/auth/auth.slice';
@@ -54,52 +49,67 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tabValue, setTabValue] = useState(0);
-  const [donViList, setDonViList] = useState<any[]>([]);
   const [registerFormData, setRegisterFormData] = useState({
     ten_nguoi_dung: '',
     email: '',
     sdt: '',
-    ma_don_vi: '',
-    gioi_tinh: ''
+    ma_don_vi: '683d5eba869f753261eb0a4f' // Default unit ID
   });
   const [loginFormData, setLoginFormData] = useState({
     ten_dang_nhap: '',
     mat_khau: ''
   });
 
+  // Check if user is already authenticated in any section
   const { isAuthenticated } = useSelector((state: any) => state.user || {});
   const adminAuth = useSelector((state: any) => state.auth || {});
   const clientAuth = useSelector((state: any) => state.authClient || {});
+
+  // Prevent useEffect from triggering onSuccess for component remounts
+  // Add a ref to track if we've already done the initial auth check
   const initialAuthCheckDone = useRef(false);
 
   useEffect(() => {
-
+    console.log("RegisterForm initialized with maKhaoSat:", maKhaoSat);
+    console.log("Current auth state:", { 
+      isAuthenticated, 
+      adminAuth: adminAuth?.isLogin ? 'logged in' : 'not logged in',
+      clientAuth: clientAuth?.isLogin ? 'logged in' : 'not logged in'
+    });
+    
+    // Skip the check if we've already done it once to prevent loops
     if (initialAuthCheckDone.current) {
       return;
     }
     
+    // If user is already authenticated in any section, trigger success callback
     if (isAuthenticated) {
+      console.log("User is authenticated in user state, calling onSuccess");
       initialAuthCheckDone.current = true;
       onSuccess();
       return;
     }
     
     if (adminAuth?.isLogin) {
+      console.log("User is authenticated in admin state, calling onSuccess");
       initialAuthCheckDone.current = true;
       onSuccess();
       return;
     }
     
     if (clientAuth?.isLogin) {
+      console.log("User is authenticated in client state, calling onSuccess");
       initialAuthCheckDone.current = true;
       onSuccess();
       return;
     }
     
+    // Check if there's a token in localStorage
     const token = localStorage.getItem('token');
     const userInfo = localStorage.getItem('userInfo');
     if (token && userInfo) {
       try {
+        console.log("Found token and userInfo in localStorage");
         const userData = JSON.parse(userInfo);
         dispatch(setUserInfo(userData));
         initialAuthCheckDone.current = true;
@@ -109,37 +119,18 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
         initialAuthCheckDone.current = true;
       }
     } else {
+      console.log("No token or userInfo found in localStorage, staying on registration form");
       initialAuthCheckDone.current = true;
+      // Form will remain visible since we're not calling onSuccess
     }
   }, [isAuthenticated, adminAuth, clientAuth, onSuccess, dispatch]);
-
-  useEffect(() => {
-    const fetchDonViList = async () => {
-      try {
-        const response = await DonViService.getListEntityNoAuth(1, 100); 
-        if (response && response.status === "Success" && response.data?.danh_sach_don_vi) {
-          setDonViList(response.data.danh_sach_don_vi);
-          if (response.data.danh_sach_don_vi.length > 0) {
-            setRegisterFormData(prev => ({
-              ...prev,
-              ma_don_vi: response.data.danh_sach_don_vi[0]._id
-            }));
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching don vi list:', error);
-      }
-    };
-
-    fetchDonViList();
-  }, []);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     setError('');
   };
 
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
+  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setRegisterFormData(prev => ({
       ...prev,
@@ -159,11 +150,13 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
     e.preventDefault();
     setError('');
     
-    if (!registerFormData.ten_nguoi_dung || !registerFormData.email || !registerFormData.gioi_tinh) {
-      setError('Vui lòng nhập họ tên, email và chọn giới tính');
+    // Basic validation
+    if (!registerFormData.ten_nguoi_dung || !registerFormData.email) {
+      setError('Vui lòng nhập họ tên và email');
       return;
     }
 
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(registerFormData.email)) {
       setError('Email không hợp lệ');
@@ -172,18 +165,25 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
     
     try {
       setLoading(true);
+      console.log("Submitting register data:", registerFormData);
       const response = await Auth.register(registerFormData);
       
+      console.log("Register response:", response);
       
       if (response && response.status === "Success" && response.data) {
+        // Extract data from the response using the correct structure
         const userData = response.data.nguoi_dung;
         const accessToken = response.data.access_token;
         
-
+        console.log("User data extracted:", userData);
+        console.log("Access token extracted:", accessToken);
+        
         if (userData && accessToken) {
+          // Store user info in localStorage with the right structure
           localStorage.setItem('userInfo', JSON.stringify(userData));
           localStorage.setItem('token', accessToken);
           
+          // Update all Redux states
           dispatch(setUserInfo(userData));
           dispatch(loginSuccess(userData));
           dispatch(setToken(accessToken));
@@ -192,6 +192,7 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
           
           initialAuthCheckDone.current = true;
           
+          console.log("Registration successful, calling onSuccess");
           onSuccess();
         } else {
           console.error("Missing user data or token in response:", response.data);
@@ -213,6 +214,7 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
     e.preventDefault();
     setError('');
     
+    // Basic validation
     if (!loginFormData.ten_dang_nhap || !loginFormData.mat_khau) {
       setError('Vui lòng nhập tên đăng nhập và mật khẩu');
       return;
@@ -220,27 +222,37 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
     
     try {
       setLoading(true);
-
+      console.log("Submitting login data to server:", {
+        username: loginFormData.ten_dang_nhap,
+        password: '********' // Don't log actual password
+      });
       
       const response = await Auth.login(loginFormData.ten_dang_nhap, loginFormData.mat_khau);
       
+      console.log("Login response:", response);
       
       if (response && response.status === "Success" && response.data) {
+        // Get user data from the login response - handle different response formats
         const userData = response.data.nguoi_dung || response.data.user;
         const accessToken = response.data.access_token || response.data.token;
         
         if (userData && accessToken) {
-
+          console.log("User data:", userData);
+          console.log("Access token:", accessToken);
           
+          // Store user info in localStorage
           localStorage.setItem('userInfo', JSON.stringify(userData));
           localStorage.setItem('token', accessToken);
           
+          // Update all Redux states
           dispatch(setUserInfo(userData));
           dispatch(loginSuccess(userData));
           dispatch(setToken(accessToken));
           dispatch(loginClientSuccess(userData));
           dispatch(setClientToken(accessToken));
           
+          // Call the success callback - this will trigger a page reload
+          console.log("Login successful, calling onSuccess");
           onSuccess();
         } else {
           console.error("Missing user data or token in login response:", response.data);
@@ -319,40 +331,6 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
                 onChange={handleRegisterChange}
                 variant="outlined"
               />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel>Giới tính</InputLabel>
-                <Select
-                  value={registerFormData.gioi_tinh}
-                  label="Giới tính"
-                  name="gioi_tinh"
-                  onChange={handleRegisterChange}
-                >
-                  <MenuItem value="Nam">Nam</MenuItem>
-                  <MenuItem value="Nữ">Nữ</MenuItem>
-                  <MenuItem value="Khác">Khác</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Đơn vị</InputLabel>
-                <Select
-                  value={registerFormData.ma_don_vi}
-                  label="Đơn vị"
-                  name="ma_don_vi"
-                  onChange={handleRegisterChange}
-                >
-                  {donViList.map((donVi) => (
-                    <MenuItem key={donVi._id} value={donVi._id}>
-                      {donVi.ten_don_vi}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
             </Grid>
           </Grid>
           

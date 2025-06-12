@@ -51,19 +51,19 @@ export const KhaoSatPage = () => {
   ) => {
     try {
       setLoading(true);
+      // Ensure search text is properly trimmed and handled
+      const searchParam = requestText?.trim() || "";
+      
       const response = await APIServices.KhaoSatService.getListEntity(
         requestIndex,
         requestSize,
-        requestText
+        searchParam
       );
       console.log("KhaoSat API Response:", response); 
+      console.log("Search parameters:", { pageIndex: requestIndex, pageSize: requestSize, search: searchParam });
+      
       if (response && response.status === "Success") {
         const responseData = response.data;
-        setKhaoSats(responseData.danh_sach_khao_sat || []);
-        
-        // Extract pagination data correctly
-        if (responseData.pagination) {
-          setTotal(responseData.pagination.total || 0);
         } else {
           setTotal(responseData.danh_sach_khao_sat?.length || 0);
         }

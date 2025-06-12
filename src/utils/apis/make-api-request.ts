@@ -2,14 +2,19 @@ import axios from "axios";
 import { AppConfigs } from "../../const/config";
 import { StoreService } from "../";
 
+// Create a function that creates and returns an API service
 const createApiServices = (noCache = false) => {
+  // Use AppConfigs.serverUrl instead of VITE_APP_API_URL environment variable
   const API_URL = AppConfigs.serverUrl;
 
+  console.log("Using API URL:", API_URL); // For debugging
 
+  // Create an axios instance for non-auth requests
   const instance = axios.create({
     baseURL: API_URL,
   });
 
+  // Create a function to make regular requests (no authentication)
   const makeRequest = async ({
     url = "",
     method = "GET",
@@ -32,6 +37,7 @@ const createApiServices = (noCache = false) => {
       }
       return req?.data;
     } catch (error) {
+      // Don't throw the error - just return it as part of the response
       console.error(`API Error (${method} ${url}):`, error);
       return {
         status: "Error",
@@ -41,6 +47,7 @@ const createApiServices = (noCache = false) => {
     }
   };
 
+  // Create a function to make authenticated requests
   const makeAuthRequest = async ({
     url = "",
     method = "GET",
@@ -48,24 +55,21 @@ const createApiServices = (noCache = false) => {
     options = {},
   }) => {
     try {
-      const token = localStorage.getItem('token');      
-      if (!token) {
-        console.error('No authentication token found for authenticated request');
-        throw new Error('Authentication token required');
-      }
-
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers
-      };
-
+      const token = localStorage.getItem('token'); // Direct access to avoid circular dependency
+      
+      // Log the token for debugging (remove in production)
+      console.log(`Using token for auth request (${method} ${url}):`, token ? "Token found" : "No token");
+      
       const authOptions = {
         ...options,
-        headers,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        },
       };
       return await makeRequest({ url, method, data, options: authOptions });
     } catch (error) {
+      // Don't throw the error - just return it as part of the response
       console.error(`Auth API Error (${method} ${url}):`, error);
       return {
         status: "Error",

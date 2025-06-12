@@ -19,6 +19,7 @@ const login = (username = "", password = "") => {
 const register = (userData = {}) => {
   console.log("Registering new user with data:", userData);
   
+  // Make sure to format the request body correctly
   const requestBody = {
     ...userData,
   };
@@ -39,6 +40,8 @@ const getPermission = () => {
 };
 
 const checkToken = () => {
+  // IMPORTANT: Always return a successful response even if no token
+  // This prevents redirect issues
   const token = localStorage.getItem('token');
   if (!token) {
     console.log("No token found, continuing without authentication");
@@ -50,11 +53,13 @@ const checkToken = () => {
   }
 
   console.log("Checking token validity");
+  // Make an actual API call to check token validity
   return api.makeAuthRequest({
     url: "/auth/profile",
     method: "GET",
     data: {},
   }).catch(err => {
+    // Always return a success response to prevent redirects
     console.error("Error checking token:", err);
     return {
       status: "Success",
@@ -90,16 +95,6 @@ const updateUserInfo = async (user: any = {}) => {
   return data?.data;
 };
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return token ? {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  } : {
-    'Content-Type': 'application/json'
-  };
-};
-
 export const Auth = {
   login,
   register,
@@ -107,5 +102,4 @@ export const Auth = {
   checkToken,
   changeMyPassword,
   updateUserInfo,
-  getAuthHeaders, // Add this export
 };
