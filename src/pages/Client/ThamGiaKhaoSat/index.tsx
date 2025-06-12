@@ -236,7 +236,7 @@ export const KhaoSatThamGiaPage = () => {
         setKhaoSat(response.data);
         try {
           // Load sections after we have the survey data
-          await loadDanhSachPhan(khaoSatId);
+          await loadDanhSachPhan();
         } catch (err) {
           console.error("Error loading survey sections:", err);
           // Continue anyway, showing what we have

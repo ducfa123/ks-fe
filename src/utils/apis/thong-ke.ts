@@ -26,8 +26,10 @@ const getThongKeTongQuan = async (maKhaoSat: string) => {
     const response = await api.makeAuthRequest({
       url: "/thong-ke/tong-quan",
       method: "GET",
-      params: {
-        ma_khao_sat: maKhaoSat
+      options: {
+        params: {
+          ma_khao_sat: maKhaoSat
+        }
       }
     });
     
@@ -62,8 +64,10 @@ const getThongKeTheoCauHoi = async (maKhaoSat: string) => {
     const response = await api.makeAuthRequest({
       url: "/thong-ke/cau-hoi",
       method: "GET",
-      params: {
-        ma_khao_sat: maKhaoSat
+      options: {
+        params: {
+          ma_khao_sat: maKhaoSat
+        }
       }
     });
     
@@ -79,10 +83,10 @@ const getThongKeThoiGian = async (maKhaoSat: string, tuNgay?: string, denNgay?: 
     const response = await api.makeAuthRequest({
       url: "/thong-ke/thoi-gian",
       method: "GET",
-      params: {
-        ma_khao_sat: maKhaoSat,
-        tu_ngay: tuNgay,
-        den_ngay: denNgay
+      options: {
+        params: {
+          ma_khao_sat: maKhaoSat
+        }
       }
     });
     

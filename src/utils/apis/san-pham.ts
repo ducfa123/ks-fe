@@ -41,9 +41,6 @@ const insertEntity = async (entity: any) => {
     url: "/san-pham",
     method: "POST",
     data: formData,
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
   });
 };
 
@@ -68,9 +65,7 @@ const updateEntity = async (id: string, entity: any) => {
     url: `/san-pham/${id}`,
     method: "PUT",
     data: formData,
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+
   });
 };
 

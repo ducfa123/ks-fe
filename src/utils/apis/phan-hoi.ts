@@ -7,11 +7,11 @@ const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
     const response = await api.makeAuthRequest({
       url: "/phan-hoi",
       method: "GET",
-      params: {
+      options : {params: {
         page: pageIndex,
         limit: pageSize,
         search: keyword
-      }
+      }}
     });
     
     return response;
@@ -94,10 +94,11 @@ const getResponsesByUser = async (userId: string, pageIndex = 1, pageSize = 10) 
     const response = await api.makeAuthRequest({
       url: `/phan-hoi/nguoi-dung/${userId}`,
       method: "GET",
+      options: {
       params: {
         page: pageIndex,
         limit: pageSize
-      }
+      }}
     });
     
     return response;
@@ -112,11 +113,14 @@ const getResponsesBySurvey = async (surveyId: string, pageIndex = 1, pageSize = 
     const response = await api.makeAuthRequest({
       url: `/phan-hoi/khao-sat/${surveyId}`,
       method: "GET",
-      params: {
-        page: pageIndex,
-        limit: pageSize,
-        search: keyword
-      }
+      options: {
+        params: {
+          page: pageIndex,
+          limit: pageSize,
+          search: keyword
+        }
+      },
+      
     });
     
     return response;

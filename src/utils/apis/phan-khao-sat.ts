@@ -7,14 +7,15 @@ const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
     const response = await api.makeAuthRequest({
       url: "/phan-khao-sat",
       method: "GET",
-      params: {
-        page: pageIndex,
-        limit: pageSize,
-        search: keyword
+      options: {
+        params: {
+          page: pageIndex,
+          limit: pageSize,
+          search: keyword
+        }
       }
-    });
+    }); 
     
-    // Trả về toàn bộ response để component có thể xử lý
     return response;
   } catch (error) {
     console.error("Error in getListEntity:", error);
