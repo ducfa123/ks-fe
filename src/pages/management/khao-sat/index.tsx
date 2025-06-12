@@ -59,13 +59,36 @@ export const KhaoSatPage = () => {
         requestSize,
         searchParam
       );
-      console.log("KhaoSat API Response:", response); 
-      console.log("Search parameters:", { pageIndex: requestIndex, pageSize: requestSize, search: searchParam });
       
       if (response && response.status === "Success") {
         const responseData = response.data;
+        
+        // Handle different possible response structures
+        if (responseData) {
+          // If response has danh_sach_khao_sat property
+          if (responseData.danh_sach_khao_sat) {
+            setKhaoSats(responseData.danh_sach_khao_sat);
+            // Use pagination info if available, otherwise use array length
+            setTotal(responseData.pagination?.total || responseData.total || responseData.danh_sach_khao_sat.length);
+          } 
+          // If response data is directly an array
+          else if (Array.isArray(responseData)) {
+            setKhaoSats(responseData);
+            setTotal(responseData.length);
+          } 
+          // If response has items property
+          else if (responseData.items) {
+            setKhaoSats(responseData.items);
+            setTotal(responseData.pagination?.total || responseData.total || responseData.items.length);
+          } 
+          // Default case
+          else {
+            setKhaoSats([]);
+            setTotal(0);
+          }
         } else {
-          setTotal(responseData.danh_sach_khao_sat?.length || 0);
+          setKhaoSats([]);
+          setTotal(0);
         }
         
         setPageSize(requestSize);
@@ -77,6 +100,7 @@ export const KhaoSatPage = () => {
         setTotal(0);
       }
     } catch (err) {
+      console.error("Error loading data:", err);
       error("Không thể tải dữ liệu khảo sát");
       setKhaoSats([]);
       setTotal(0);
@@ -297,10 +321,10 @@ export const KhaoSatPage = () => {
           total={total}
           // loading={loading}
           onChangePage={(value) => {
-            loadData(pageSize, value);
+            loadData(pageSize, value, searchText); // Pass searchText to preserve search
           }}
           onRowPerPageChange={(value) => {
-            loadData(value, 1);
+            loadData(value, 1, searchText); // Pass searchText to preserve search
           }}
         />
       </Box>

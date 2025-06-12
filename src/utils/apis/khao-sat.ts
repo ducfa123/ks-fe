@@ -22,17 +22,19 @@ interface KhaoSatListResponse {
 
 const getListEntity = async (pageIndex = 1, pageSize = 10, keyword = "") => {
   try {
+  
+    
+    
     const response = await api.makeAuthRequest({
       url: "/khao-sat",
       method: "GET",
-      params: {
-        pageIndex: pageIndex,
-        pageSize: pageSize,
-        search: keyword
-      }
-    });
-    
-    console.log("KhaoSat API Response:", response);
+      options: {
+        params: {
+          page: pageIndex,
+          limit: pageSize,
+          search: keyword
+        }
+      }    });
     
     return response;
   } catch (error) {
