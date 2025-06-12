@@ -51,6 +51,8 @@ const ProtectedOutlet: FC<RouterProps> = ({ requireLogin = false }) => {
             vai_tro: user?.vai_tro,
             phong_ban: user?.phong_ban,
             so_du: user?.so_du,
+            email: user?.email,
+            sdt: user?.sdt,
           })
         );
       } catch {

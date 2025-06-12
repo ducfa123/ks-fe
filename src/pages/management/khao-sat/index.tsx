@@ -63,26 +63,20 @@ export const KhaoSatPage = () => {
       if (response && response.status === "Success") {
         const responseData = response.data;
         
-        // Handle different possible response structures
         if (responseData) {
-          // If response has danh_sach_khao_sat property
           if (responseData.danh_sach_khao_sat) {
             setKhaoSats(responseData.danh_sach_khao_sat);
-            // Use pagination info if available, otherwise use array length
             setTotal(responseData.pagination?.total || responseData.total || responseData.danh_sach_khao_sat.length);
           } 
-          // If response data is directly an array
           else if (Array.isArray(responseData)) {
             setKhaoSats(responseData);
             setTotal(responseData.length);
           } 
-          // If response has items property
           else if (responseData.items) {
             setKhaoSats(responseData.items);
             setTotal(responseData.pagination?.total || responseData.total || responseData.items.length);
           } 
-          // Default case
-          else {
+           else {
             setKhaoSats([]);
             setTotal(0);
           }

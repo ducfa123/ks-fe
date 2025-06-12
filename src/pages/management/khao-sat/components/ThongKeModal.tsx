@@ -12,6 +12,7 @@ interface ThongKeModalProps {
   thongKeTheoVungMien: any[];
   thongKeTheoCauHoi: any[];
   thongKeThoiGian: any[];
+  thongKeTheoGioiTinh: any[];
 }
 
 export const ThongKeModal: React.FC<ThongKeModalProps> = (props) => {

@@ -29,3 +29,7 @@ export * from "./tai-khoan-san-pham";
 export * from "./client";
 export * from "./lich-su-don-hang";
 export * from "./phan-hoi";
+export * from "./gioi-han-vung-mien";
+export * from "./gioi-han-don-vi";
+export * from "./don-vi"; 
+export * from  "./vung-mien";

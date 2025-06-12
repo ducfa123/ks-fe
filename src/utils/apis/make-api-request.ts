@@ -63,7 +63,7 @@ const createApiServices = (noCache = false) => {
       const authOptions = {
         ...options,
         headers: {
-          ...options.headers,
+          ...(options as any).headers,
           Authorization: `Bearer ${token}`,
         },
       };
