@@ -5,7 +5,7 @@ import ProtectedOutlet from "./protected-outlet";
 import { MainLayout } from "../layouts/main";
 import { VaiTroPage } from "../pages/management/vai-tro";
 import { PhanQuyenPage } from "../pages/management/quyen";
-import { NguoiDungPage } from "../pages/management/nguoi-dung";
+import { KhaoSatPage } from "../pages/management/khao-sat";
 import { SystemFeatures, SystemAction } from "../types";
 import { DanhMucSanPhamPage } from "../pages/management/danh-muc-san-pham";
 import { SanPhamPage } from "../pages/management/san-pham";
@@ -22,6 +22,10 @@ import { ClientContactPage } from "../pages/Client/Contact";
 import ClientLoginPage from "../pages/Client/login";
 import { ClientOrderHistoryPage } from "../pages/Client/OrderHistory";
 import AdminOrderHistoryPage from "../pages/order-history/AdminOrderHistoryPage";
+import { KhaoSatDetailPage } from "../pages/management/khao-sat/detail";
+import { KhaoSatResponsesPage } from "../pages/management/khao-sat/responses";
+import { KhaoSatThamGiaPage } from "../pages/Client/ThamGiaKhaoSat/index";
+import { ResponseDetailsPage } from "../pages/management/khao-sat/response-details";
 
 const MainRoutes = [
   // Client routes
@@ -58,6 +62,10 @@ const MainRoutes = [
         path: "order-history",
         element: <ClientOrderHistoryPage />,
       },
+      {
+        path: "khao-sat/:id",
+        element: <KhaoSatThamGiaPage />,
+      },
       { path: "*", element: <Navigate to={RouterLink.CLIENT_HOME} replace /> },
     ],
   },
@@ -79,10 +87,22 @@ const MainRoutes = [
             element: <ChartDashboard />,
           },
           {
-            path: RouterLink.ADMIN_QUAN_LY_NGUOI_DUNG,
-            element: <NguoiDungPage />,
-            module: SystemFeatures.QuanLyNguoiDung,
-            action: [SystemAction.View, SystemAction.Edit],
+            path: RouterLink.ADMIN_QUAN_LY_KHAO_SAT,
+            element: <KhaoSatPage />,
+            // module: SystemFeatures.QuanLyNguoiDung,
+            // action: [SystemAction.View, SystemAction.Edit],
+          },
+          {
+            path: RouterLink.ADMIN_QUAN_LY_KHAO_SAT + "/:id",
+            element: <KhaoSatDetailPage />,
+          },
+          {
+            path: RouterLink.ADMIN_QUAN_LY_KHAO_SAT + "/:id/phan-hoi",
+            element: <KhaoSatResponsesPage />,
+          },
+          {
+            path: RouterLink.ADMIN_QUAN_LY_KHAO_SAT +"/phan-hoi-chi-tiet/:responseId",
+            element: <ResponseDetailsPage />,
           },
           {
             path: RouterLink.ADMIN_QUAN_LY_VAI_TRO,

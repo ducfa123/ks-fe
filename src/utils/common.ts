@@ -1,6 +1,36 @@
 import dayjs, { Dayjs } from "dayjs";
 import { toNumber } from "./parse";
 
+// Common utility functions
+
+/**
+ * Formats a date string to a localized format
+ */
+export const formatDate = (dateString: string): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN');
+};
+
+/**
+ * Formats a number as currency
+ */
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(amount);
+};
+
+/**
+ * Truncates a string to a specified length and adds ellipsis
+ */
+export const truncateString = (str: string, maxLength: number): string => {
+  if (!str) return '';
+  if (str.length <= maxLength) return str;
+  return str.substring(0, maxLength) + '...';
+};
+
 export const formatNumberVND = (number: number): string => {
   if (typeof number !== "number" || isNaN(number)) {
     throw new Error("Giá trị nhập vào phải là một số hợp lệ.");

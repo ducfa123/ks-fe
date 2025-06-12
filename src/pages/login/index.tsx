@@ -134,7 +134,6 @@ export const LoginPage = () => {
         dispatch(setToken(tokenValue));
         dispatch(setIdToken(null));
         
-        // Tách riêng loadPermission để không ảnh hưởng đến luồng đăng nhập
         try {
           await loadPermission();
         } catch (permError) {

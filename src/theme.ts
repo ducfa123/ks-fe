@@ -3,10 +3,13 @@ import {createTheme} from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#000000",
+      main: "#318ded",
+      light: "#6bafff",
+      dark: "#006eba",
+      contrastText: "#ffffff",
     },
     customColor: {
-      primaryColor: "#0A8DEE",
+      primaryColor: "#318ded", 
       secondaryColor: "#ff4081",
       dangerColor: "#ff6666",
       borderRadius: "8px",

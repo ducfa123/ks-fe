@@ -24,6 +24,7 @@ import { ModalComponent } from "../../../components";
 import { TelegramConnectBox } from "../../../components/tTelegramConnectQR";
 import { useAppDispatch, useAppSelector } from "../../../hooks";
 import { logout } from "../../../redux/auth/auth.slice";
+import { logoutClient } from "../../../redux/auth-client/auth-client.slice";
 import {
   setCollapsed,
   setModalChangePasswordState,
@@ -75,6 +76,8 @@ const HeaderCustom: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const info = useAppSelector((state) => state.auth.info);
+  const clientAuth = useAppSelector((state) => state.authClient);
+  const userInfo = useAppSelector((state) => state.user);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [currentMenu, setCurrentMenu] = useState<string | null>(null);
   const [openTelegramModal, setOpenTelegramModal] = useState(false);
@@ -98,7 +101,20 @@ const HeaderCustom: React.FC = () => {
   }, [openTelegramModal]);
 
   const handleLogout = () => {
-    dispatch(logout());
+    // Logout admin if logged in
+    if (info) {
+      dispatch(logout());
+    }
+    
+    // Logout client if logged in
+    if (clientAuth?.isLogin) {
+      dispatch(logoutClient());
+    }
+    
+    // Clear localStorage completely
+    localStorage.clear();
+    
+    // Navigate to admin login or home page
     navigate(RouterLink.ADMIN_LOGIN);
   };
 
@@ -129,6 +145,10 @@ const HeaderCustom: React.FC = () => {
     setAnchorEl(null);
     setCurrentMenu(null);
   };
+
+  // Determine which user info to display (prioritize client for regular users)
+  const displayInfo = clientAuth?.isLogin ? clientAuth.info : info;
+  const displayName = displayInfo?.ho_ten || displayInfo?.ten_nguoi_dung || 'User';
 
   return (
     <StyledAppBar position="static">
@@ -186,43 +206,7 @@ const HeaderCustom: React.FC = () => {
             cursor: "pointer",
           }}
         >
-          <Box
-            sx={{
-              fontFamily: "Be Vietnam Pro",
-              marginRight: "10px",
-              display: "flex",
-              gap: "5px",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            Số dư:{" "}
-            <Box sx={{ fontWeight: 600 }}>
-              {formatNumberVND(info?.so_du ?? 0)}
-            </Box>{" "}
-            VNĐ
-          </Box>
-          <Tooltip
-            title={
-              telegramConnected
-                ? "Đã kết nối Telegram"
-                : "Chưa kết nối Telegram"
-            }
-          >
-            <Box sx={{ mr: 2 }}>
-              {telegramConnected ? (
-                <StyledBadge
-                  overlap="circular"
-                  anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                  variant="dot"
-                >
-                  <FaTelegram style={{ fontSize: "20px", color: "#0088cc" }} />
-                </StyledBadge>
-              ) : (
-                <FaTelegram style={{ fontSize: "20px", color: "#gray" }} />
-              )}
-            </Box>
-          </Tooltip>
+
           <Avatar src={UserImage} sx={{ width: 24, height: 24 }} />
           <Box
             sx={{
@@ -230,7 +214,7 @@ const HeaderCustom: React.FC = () => {
               color: "black",
             }}
           >
-            {info?.ho_ten}
+            {displayName}
           </Box>
           <ArrowDropDown />
         </Box>
