@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { TextField, InputAdornment, IconButton } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -13,16 +13,27 @@ const TSearchText: React.FC<SearchInputProps> = ({
   placeholder = "Tìm kiếm...",
   onSearch,
 }) => {
-  const [query, setQuery] = useState("");
   const [tempQuery, setTempQuery] = useState(""); // Lưu giá trị nhập vào
 
+  // Stable callback to avoid useEffect dependency issues
+  const stableOnSearch = useCallback(onSearch, []);
+
+  // Add debounce effect for real-time search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      stableOnSearch(tempQuery);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timeoutId);
+  }, [tempQuery, stableOnSearch]);
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTempQuery(event.target.value);
+    const value = event.target.value;
+    setTempQuery(value);
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      setQuery(tempQuery);
       onSearch(tempQuery);
     }
   };
@@ -30,6 +41,10 @@ const TSearchText: React.FC<SearchInputProps> = ({
   const handleClear = () => {
     setTempQuery("");
     onSearch("");
+  };
+
+  const handleSearchClick = () => {
+    onSearch(tempQuery);
   };
 
   return (
@@ -43,7 +58,9 @@ const TSearchText: React.FC<SearchInputProps> = ({
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <SearchIcon sx={styles.icon} />
+            <IconButton onClick={handleSearchClick} size="small">
+              <SearchIcon sx={styles.icon} />
+            </IconButton>
           </InputAdornment>
         ),
         endAdornment: tempQuery ? (
