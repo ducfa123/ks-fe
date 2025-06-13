@@ -62,6 +62,7 @@ export const KhaoSatThamGiaPage = () => {
   const [nguoiDung, setNguoiDung] = useState<any>(null);
   const [needsRegistration, setNeedsRegistration] = useState(false);
   const [showRegistrationDialog, setShowRegistrationDialog] = useState(false);
+  const [surveySubmitted, setSurveySubmitted] = useState(false); // Add separate state for survey submission
 
   // Check for existing authentication from Redux store
   const { isAuthenticated, userInfo } = useSelector((state: any) => state.user || {});
@@ -114,6 +115,7 @@ export const KhaoSatThamGiaPage = () => {
       console.error("Failed to check auth status:", err);
       // Always default to needing registration if auth check fails
       setNeedsRegistration(true);
+      setAuthCheckComplete(true);
     }
   }, []);
 
@@ -127,58 +129,44 @@ export const KhaoSatThamGiaPage = () => {
   // Check authentication status without redirecting
   const checkAuthStatus = async () => {
     try {
-      // First check if user is already authenticated in any part of the app
-      if (isAuthenticated && userInfo) {
-        setNguoiDung(userInfo);
-        setNeedsRegistration(false);
-        setAuthCheckComplete(true);
-        return;
-      }
-      
-      // Check admin authentication
-      if (adminAuth && adminAuth.isLoggedIn && adminAuth.userInfo) {
-        setNguoiDung(adminAuth.userInfo);
-        dispatch(setUserInfo(adminAuth.userInfo));
-        setNeedsRegistration(false);
-        setAuthCheckComplete(true);
-        return;
-      }
-      
-      // Check client authentication
-      if (clientAuth && clientAuth.isLoggedIn && clientAuth.userInfo) {
-        setNguoiDung(clientAuth.userInfo);
-        dispatch(setUserInfo(clientAuth.userInfo));
-        setNeedsRegistration(false);
-        setAuthCheckComplete(true);
-        return;
-      }
-
-      // If no authentication found in Redux, check localStorage token
+      // PRIORITY: Check localStorage token first - this is the SOURCE OF TRUTH
       const token = localStorage.getItem('token');
       const storedUserInfo = localStorage.getItem('userInfo');
       
-      if (token && storedUserInfo) {
+      if (!token) {
+        // NO TOKEN = NEEDS REGISTRATION (regardless of Redux state)
+        console.log("No token found in localStorage, setting needsRegistration to true");
+        setNeedsRegistration(true);
+        setAuthCheckComplete(true);
+        return;
+      }
+      
+      // If we have token, validate user info
+      if (storedUserInfo) {
         try {
           const userData = JSON.parse(storedUserInfo);
-          if (userData) {
-            // Make sure we have at least an _id
-            if (!userData._id && userData.id) {
-              userData._id = userData.id; // Use id as fallback
-            }
-            
+          if (userData && (userData._id || userData.id) && userData.ten_nguoi_dung) {
+            // Valid token and user data
             setNguoiDung(userData);
             dispatch(setUserInfo(userData));
             setNeedsRegistration(false);
+            setAuthCheckComplete(true);
+            return;
           } else {
+            // Invalid user data - clear everything
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('token');
             setNeedsRegistration(true);
           }
         } catch (e) {
           console.error("Error parsing stored user info:", e);
+          localStorage.removeItem('userInfo');
+          localStorage.removeItem('token');
           setNeedsRegistration(true);
         }
       } else {
-        // No token found, set needs registration to true
-        console.log("No token found, setting needsRegistration to true");
+        // Token exists but no user info - clear token
+        localStorage.removeItem('token');
         setNeedsRegistration(true);
       }
     } catch (err) {
@@ -199,7 +187,11 @@ export const KhaoSatThamGiaPage = () => {
     try {
       setSurveyLoading(true);
       
-      const response = await APIServices.KhaoSatService.getDetailEntity(khaoSatId);
+      // Use non-auth API endpoint for public survey details
+      const response = await APIServices.KhaoSatService.getDetailEntityNoAuth ? 
+        await APIServices.KhaoSatService.getDetailEntityNoAuth(khaoSatId) :
+        await APIServices.KhaoSatService.getDetailEntity(khaoSatId);
+        
       if (response && response.status === "Success" && response.data) {
         // Kiểm tra khảo sát có đang hoạt động không
         if (!response.data.trang_thai) {
@@ -234,13 +226,8 @@ export const KhaoSatThamGiaPage = () => {
         }
         
         setKhaoSat(response.data);
-        try {
-          // Load sections after we have the survey data
-          await loadDanhSachPhan();
-        } catch (err) {
-          console.error("Error loading survey sections:", err);
-          // Continue anyway, showing what we have
-        }
+        // Only load sections if we have authentication
+        // For unauthenticated users, we'll load sections after they login
       } else {
         console.error("Error loading survey:", response);
         setKhaoSat(null);
@@ -256,7 +243,11 @@ export const KhaoSatThamGiaPage = () => {
   const loadDanhSachPhan = async () => {
     try {
       if (!id) return;
-      const response = await APIServices.PhanKhaoSatService.getListByKhaoSat(id);
+      
+      // Use non-auth API if available, otherwise use auth API
+      const response = await APIServices.PhanKhaoSatService.getListByKhaoSatNoAuth ? 
+        await APIServices.PhanKhaoSatService.getListByKhaoSatNoAuth(id) :
+        await APIServices.PhanKhaoSatService.getListByKhaoSat(id);
       
       if (response && response.status === "Success" && Array.isArray(response.data)) {
         const sortedPhan = response.data.sort((a, b) => (a.thu_tu || 0) - (b.thu_tu || 0));
@@ -274,7 +265,10 @@ export const KhaoSatThamGiaPage = () => {
 
   const loadDanhSachCauHoi = async (maPhan: string) => {
     try {
-      const response = await APIServices.CauHoiService.getListByPhanKhaoSat(maPhan);
+      // Use non-auth API if available
+      const response = await APIServices.CauHoiService.getListByPhanKhaoSatNoAuth ? 
+        await APIServices.CauHoiService.getListByPhanKhaoSatNoAuth(maPhan) :
+        await APIServices.CauHoiService.getListByPhanKhaoSat(maPhan);
       
       if (response && response.status === "Success" && Array.isArray(response.data)) {
         const sortedCauHoi = response.data.sort((a, b) => (a.thu_tu || 0) - (b.thu_tu || 0));
@@ -294,7 +288,10 @@ export const KhaoSatThamGiaPage = () => {
         // Tải đáp án cho từng câu hỏi
         await Promise.all(sortedCauHoi.map(async (cauHoi) => {
           try {
-            const dapAnResponse = await APIServices.DapAnService.getListByCauHoi(cauHoi._id);
+            const dapAnResponse = await APIServices.DapAnService.getListByCauHoiNoAuth ?
+              await APIServices.DapAnService.getListByCauHoiNoAuth(cauHoi._id) :
+              await APIServices.DapAnService.getListByCauHoi(cauHoi._id);
+              
             if (dapAnResponse && dapAnResponse.status === "Success" && Array.isArray(dapAnResponse.data)) {
               // Cập nhật đáp án vào state
               setDanhSachCauHoi(prev => {
@@ -534,6 +531,7 @@ export const KhaoSatThamGiaPage = () => {
       
       if (response && response.status === "Success") {
         success("Gửi phản hồi khảo sát thành công");
+        setSurveySubmitted(true); // Use separate state
         setSubmitted(true);
       } else {
         error("Không thể gửi phản hồi khảo sát");
@@ -731,13 +729,25 @@ export const KhaoSatThamGiaPage = () => {
         // Show success message
         success("Đăng ký thành công! Bạn có thể tiếp tục làm khảo sát.");
         
-        // If the survey is not loaded yet, try to load it
-        if (!khaoSat && id) {
+        // CRITICAL: Force immediate state update and reload survey content
+        // This will trigger the render to show survey content instead of registration form
+        
+        // If survey is already loaded, load sections immediately
+        if (khaoSat && id) {
+          console.log("Survey already loaded, loading sections now");
+          loadDanhSachPhan();
+        } else if (id) {
+          // If survey not loaded yet, load it first then sections
+          console.log("Survey not loaded, loading survey details first");
           loadKhaoSatDetail(id);
         }
         
-        // IMPORTANT: Never reload the page - this causes an infinite loop
-        // window.location.reload(); - REMOVE THIS LINE
+        // Force a re-render by updating a dummy state or using setTimeout
+        setTimeout(() => {
+          // This ensures the component re-renders with the new authentication state
+          setAuthCheckComplete(true);
+        }, 100);
+        
       } catch (e) {
         console.error("Lỗi khi parse thông tin người dùng:", e);
         error("Có lỗi xảy ra khi xử lý thông tin đăng ký.");
@@ -750,12 +760,27 @@ export const KhaoSatThamGiaPage = () => {
 
   // Modified to show login form when no token
   useEffect(() => {
-    // If user needs registration and we've finished checking auth, show the login form
-    if (needsRegistration && authCheckComplete) {
-      console.log("User needs registration, showing login form");
-      setShowRegistrationDialog(true);
-    }
+    // Don't auto-show registration dialog here anymore
+    // We'll handle it in the render logic
   }, [needsRegistration, authCheckComplete]);
+
+  // Load survey sections when authentication state changes
+  useEffect(() => {
+    if (!needsRegistration && khaoSat && danhSachPhan.length === 0) {
+      console.log("User authenticated, loading survey sections");
+      loadDanhSachPhan();
+    }
+  }, [needsRegistration, khaoSat]);
+
+  // Add another useEffect to handle auth state changes more reliably
+  useEffect(() => {
+    if (!needsRegistration && authCheckComplete && khaoSat) {
+      console.log("Auth state changed to authenticated, ensuring survey content is loaded");
+      if (danhSachPhan.length === 0) {
+        loadDanhSachPhan();
+      }
+    }
+  }, [needsRegistration, authCheckComplete, khaoSat]);
 
   if (surveyLoading) {
     return (
@@ -766,13 +791,24 @@ export const KhaoSatThamGiaPage = () => {
     );
   }
 
-  // Replace the "not found" error with registration form
-  if (!khaoSat) {
+  // ONLY PRIORITY: ALWAYS show registration form if no valid token (ignore all other states)
+  if (needsRegistration && authCheckComplete) {
     return (
       <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Button 
+            startIcon={<ArrowBack />} 
+            onClick={() => navigate('/')}
+            variant="text"
+            sx={{ mr: 2 }}
+          >
+            Về trang chủ
+          </Button>
+        </Box>
+
         <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
           <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom align="center">
-            Vui lòng đăng nhập để tham gia khảo sát
+            Đăng nhập để tham gia khảo sát
           </Typography>
           
           <Divider sx={{ my: 3 }} />
@@ -780,156 +816,168 @@ export const KhaoSatThamGiaPage = () => {
           <Typography variant="body1" gutterBottom align="center">
             Để tham gia khảo sát này, bạn cần đăng nhập hoặc đăng ký tài khoản.
           </Typography>
+          
+          {/* Show survey info if available, otherwise show generic message */}
+          {khaoSat ? (
+            <Box sx={{ mt: 3, p: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+                {khaoSat.tieu_de}
+              </Typography>
+              {khaoSat.mo_ta && (
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {khaoSat.mo_ta.substring(0, 200)}...
+                </Typography>
+              )}
+            </Box>
+          ) : (
+            <Box sx={{ mt: 3, p: 3, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+              <Typography variant="body2" color="text.secondary" align="center">
+                Khảo sát ID: {id}
+              </Typography>
+            </Box>
+          )}
         </Paper>
         
         <RegisterForm 
-          onSuccess={() => {
-            console.log("RegisterForm onSuccess callback executed");
-            
-            // Instead of a page reload, try to load the survey directly
-            if (id) {
-              // CRITICAL FIX: Use handleRegistrationSuccess instead of calling loadKhaoSatDetail directly
-              // This ensures consistent state updates
-              handleRegistrationSuccess();
-            }
-          }} 
+          onSuccess={handleRegistrationSuccess} 
           maKhaoSat={id} 
         />
       </Box>
     );
   }
 
-  if (submitted) {
+  // Show thank you page if survey was submitted
+  if (surveySubmitted) {
     return renderThankYou();
   }
 
+  // Show survey content if authenticated and survey exists
+  if (!needsRegistration && khaoSat) {
+    return (
+      <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Button 
+            startIcon={<ArrowBack />} 
+            onClick={() => navigate(-1)}
+            variant="text"
+            sx={{ mr: 2 }}
+          >
+            Quay lại
+          </Button>
+        </Box>
+        
+        <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+          <Typography variant="h5" component="h1" fontWeight="bold" sx={{ mb: 1 }}>
+            {khaoSat.tieu_de}
+          </Typography>
+          
+          {khaoSat.mo_ta && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                {khaoSat.mo_ta}
+              </Typography>
+            </>
+          )}
+        </Paper>
+
+        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+          {danhSachPhan.map((phan, index) => (
+            <Step key={phan._id}>
+              <StepLabel>{`Phần ${index + 1}`}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        
+        {showErrorValidation && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            Vui lòng trả lời tất cả các câu hỏi bắt buộc trước khi tiếp tục
+          </Alert>
+        )}
+        
+        {danhSachPhan.length > 0 ? (
+          <>
+            {danhSachPhan.map((phan, index) => renderPhan(phan, index))}
+            
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Button
+                variant="outlined"
+                onClick={handleBack}
+                startIcon={<NavigateBefore />}
+                disabled={activeStep === 0}
+              >
+                Quay lại
+              </Button>
+              
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                endIcon={activeStep === danhSachPhan.length - 1 ? undefined : <NavigateNext />}
+              >
+                {activeStep === danhSachPhan.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
+              </Button>
+            </Box>
+          </>
+        ) : (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography>Đang tải nội dung khảo sát...</Typography>
+          </Paper>
+        )}
+        
+        {/* Confirmation Dialog */}
+        <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)}>
+          <DialogTitle>Xác nhận gửi phản hồi</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Bạn có chắc chắn muốn gửi phản hồi khảo sát này không? Sau khi gửi, bạn sẽ không thể chỉnh sửa phản hồi.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowConfirmDialog(false)}>Hủy</Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? <CircularProgress size={24} /> : 'Gửi phản hồi'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    );
+  }
+
+  // Default: Show registration form (fallback for any other case)
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: { xs: 2, md: 4 } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         <Button 
           startIcon={<ArrowBack />} 
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           variant="text"
           sx={{ mr: 2 }}
         >
-          Quay lại
+          Về trang chủ
         </Button>
       </Box>
-      
-      <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Typography variant="h5" component="h1" fontWeight="bold" sx={{ mb: 1 }}>
-          {khaoSat.tieu_de}
+
+      <Paper sx={{ p: 4, borderRadius: 2, mb: 4 }}>
+        <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom align="center">
+          Đăng nhập để tham gia khảo sát
         </Typography>
         
-        {khaoSat.mo_ta && (
-          <>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-              {khaoSat.mo_ta}
-            </Typography>
-          </>
-        )}
-      </Paper>
-
-      {/* Show a message if login is required */}
-      {needsRegistration && (
-        <Box sx={{ mb: 4 }}>
-          <Paper sx={{ p: 3, borderRadius: 2, bgcolor: '#f8f8f8' }}>
-            <Typography variant="subtitle1" gutterBottom color="primary">
-              Đăng nhập để tham gia khảo sát
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              Bạn cần đăng nhập hoặc đăng ký để có thể gửi phản hồi cho khảo sát này.
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => setShowRegistrationDialog(true)}
-            >
-              Đăng nhập / Đăng ký
-            </Button>
-          </Paper>
-        </Box>
-      )}
-      
-      <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-        {danhSachPhan.map((phan, index) => (
-          <Step key={phan._id}>
-            <StepLabel>{`Phần ${index + 1}`}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-      
-      {showErrorValidation && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          Vui lòng trả lời tất cả các câu hỏi bắt buộc trước khi tiếp tục
-        </Alert>
-      )}
-      
-      {danhSachPhan.map((phan, index) => renderPhan(phan, index))}
-      
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-        <Button
-          variant="outlined"
-          onClick={handleBack}
-          startIcon={<NavigateBefore />}
-          disabled={activeStep === 0}
-        >
-          Quay lại
-        </Button>
+        <Divider sx={{ my: 3 }} />
         
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          endIcon={activeStep === danhSachPhan.length - 1 ? undefined : <NavigateNext />}
-        >
-          {activeStep === danhSachPhan.length - 1 ? 'Hoàn thành' : 'Tiếp theo'}
-        </Button>
-      </Box>
+        <Typography variant="body1" gutterBottom align="center">
+          Để tham gia khảo sát này, bạn cần đăng nhập hoặc đăng ký tài khoản.
+        </Typography>
+      </Paper>
       
-      {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onClose={() => setShowConfirmDialog(false)}>
-        <DialogTitle>Xác nhận gửi phản hồi</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Bạn có chắc chắn muốn gửi phản hồi khảo sát này không? Sau khi gửi, bạn sẽ không thể chỉnh sửa phản hồi.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowConfirmDialog(false)}>Hủy</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? <CircularProgress size={24} /> : 'Gửi phản hồi'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Registration Dialog */}
-      <Dialog 
-        open={showRegistrationDialog} 
-        onClose={() => {
-          // Don't close dialog if the user hasn't logged in yet and needs registration
-          if (!needsRegistration) {
-            setShowRegistrationDialog(false);
-          }
-        }}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogContent>
-          <RegisterForm 
-            onSuccess={() => {
-              console.log("Dialog RegisterForm onSuccess callback executed");
-              handleRegistrationSuccess();
-            }} 
-            maKhaoSat={id} 
-          />
-        </DialogContent>
-      </Dialog>
+      <RegisterForm 
+        onSuccess={handleRegistrationSuccess} 
+        maKhaoSat={id} 
+      />
     </Box>
   );
 };

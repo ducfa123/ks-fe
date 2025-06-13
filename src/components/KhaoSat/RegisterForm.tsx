@@ -10,9 +10,14 @@ import {
   Grid,
   Divider,
   Tabs,
-  Tab
+  Tab,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import { Auth } from '../../utils/apis/auth';
+import { DonViService } from '../../utils/apis/don-vi';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUserInfo } from '../../redux/userSlice';
 import { loginSuccess, setToken } from '../../redux/auth/auth.slice';
@@ -49,11 +54,14 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tabValue, setTabValue] = useState(0);
+  const [donViList, setDonViList] = useState<any[]>([]);
+  const [loadingDonVi, setLoadingDonVi] = useState(false);
   const [registerFormData, setRegisterFormData] = useState({
     ten_nguoi_dung: '',
     email: '',
     sdt: '',
-    ma_don_vi: '683d5eba869f753261eb0a4f' // Default unit ID
+    ma_don_vi: '',
+    gioi_tinh: ''
   });
   const [loginFormData, setLoginFormData] = useState({
     ten_dang_nhap: '',
@@ -69,68 +77,107 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
   // Add a ref to track if we've already done the initial auth check
   const initialAuthCheckDone = useRef(false);
 
+  // Load danh sách đơn vị when component mounts
+  useEffect(() => {
+    const fetchDonViList = async () => {
+      try {
+        setLoadingDonVi(true);
+        const response = await DonViService.getListEntityNoAuth(1, 100);
+        
+        if (response && response.status === "Success") {
+          // Handle different response structures
+          let donViData = [];
+          if (response.data?.danh_sach_don_vi) {
+            donViData = response.data.danh_sach_don_vi;
+          } else if (Array.isArray(response.data)) {
+            donViData = response.data;
+          } else if (response.data) {
+            donViData = [response.data];
+          }
+          
+          setDonViList(donViData);
+          
+          // Set default đơn vị if available
+          if (donViData.length > 0 && !registerFormData.ma_don_vi) {
+            setRegisterFormData(prev => ({
+              ...prev,
+              ma_don_vi: donViData[0]._id || donViData[0].id
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching don vi list:', error);
+        // If API fails, use fallback default
+        setRegisterFormData(prev => ({
+          ...prev,
+          ma_don_vi: '683d5eba869f753261eb0a4f'
+        }));
+      } finally {
+        setLoadingDonVi(false);
+      }
+    };
+
+    fetchDonViList();
+  }, []);
+
   useEffect(() => {
     console.log("RegisterForm initialized with maKhaoSat:", maKhaoSat);
-    console.log("Current auth state:", { 
-      isAuthenticated, 
-      adminAuth: adminAuth?.isLogin ? 'logged in' : 'not logged in',
-      clientAuth: clientAuth?.isLogin ? 'logged in' : 'not logged in'
-    });
     
     // Skip the check if we've already done it once to prevent loops
     if (initialAuthCheckDone.current) {
       return;
     }
     
-    // If user is already authenticated in any section, trigger success callback
-    if (isAuthenticated) {
-      console.log("User is authenticated in user state, calling onSuccess");
-      initialAuthCheckDone.current = true;
-      onSuccess();
-      return;
-    }
-    
-    if (adminAuth?.isLogin) {
-      console.log("User is authenticated in admin state, calling onSuccess");
-      initialAuthCheckDone.current = true;
-      onSuccess();
-      return;
-    }
-    
-    if (clientAuth?.isLogin) {
-      console.log("User is authenticated in client state, calling onSuccess");
-      initialAuthCheckDone.current = true;
-      onSuccess();
-      return;
-    }
-    
-    // Check if there's a token in localStorage
+    // PRIORITY: Check localStorage token first - SOURCE OF TRUTH
     const token = localStorage.getItem('token');
     const userInfo = localStorage.getItem('userInfo');
+    
+    if (!token) {
+      console.log("No token found in localStorage, form will be shown");
+      initialAuthCheckDone.current = true;
+      // Form will remain visible for user registration
+      return;
+    }
+    
     if (token && userInfo) {
       try {
         console.log("Found token and userInfo in localStorage");
         const userData = JSON.parse(userInfo);
-        dispatch(setUserInfo(userData));
-        initialAuthCheckDone.current = true;
-        onSuccess();
+        
+        // Validate user data before calling onSuccess
+        if (userData && (userData._id || userData.id) && userData.ten_nguoi_dung) {
+          dispatch(setUserInfo(userData));
+          initialAuthCheckDone.current = true;
+          onSuccess();
+        } else {
+          console.log("Invalid user data found, clearing localStorage");
+          localStorage.removeItem('userInfo');
+          localStorage.removeItem('token');
+          initialAuthCheckDone.current = true;
+          // Don't call onSuccess - stay on registration form
+        }
       } catch (e) {
         console.error("Error parsing stored user info:", e);
+        // Clear invalid data
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('token');
         initialAuthCheckDone.current = true;
+        // Don't call onSuccess - stay on registration form
       }
     } else {
-      console.log("No token or userInfo found in localStorage, staying on registration form");
+      console.log("Token exists but no userInfo, clearing token");
+      localStorage.removeItem('token');
       initialAuthCheckDone.current = true;
-      // Form will remain visible since we're not calling onSuccess
+      // Form will remain visible for user registration
     }
-  }, [isAuthenticated, adminAuth, clientAuth, onSuccess, dispatch]);
+  }, [onSuccess, dispatch]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
     setError('');
   };
 
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
     const { name, value } = e.target;
     setRegisterFormData(prev => ({
       ...prev,
@@ -150,13 +197,17 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
     e.preventDefault();
     setError('');
     
-    // Basic validation
-    if (!registerFormData.ten_nguoi_dung || !registerFormData.email) {
-      setError('Vui lòng nhập họ tên và email');
+    // Enhanced validation
+    if (!registerFormData.ten_nguoi_dung || !registerFormData.email || !registerFormData.gioi_tinh) {
+      setError('Vui lòng nhập họ tên, email và chọn giới tính');
       return;
     }
 
-    // Email validation
+    if (!registerFormData.ma_don_vi) {
+      setError('Vui lòng chọn đơn vị');
+      return;
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(registerFormData.email)) {
       setError('Email không hợp lệ');
@@ -170,33 +221,53 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
       
       console.log("Register response:", response);
       
-      if (response && response.status === "Success" && response.data) {
-        // Extract data from the response using the correct structure
-        const userData = response.data.nguoi_dung;
-        const accessToken = response.data.access_token;
+      if (response && response.status === "Success") {
+        let userData = null;
+        let accessToken = null;
         
-        console.log("User data extracted:", userData);
-        console.log("Access token extracted:", accessToken);
-        
-        if (userData && accessToken) {
-          // Store user info in localStorage with the right structure
-          localStorage.setItem('userInfo', JSON.stringify(userData));
-          localStorage.setItem('token', accessToken);
+        // Try different response structures
+        if (response.data) {
+          userData = response.data.nguoi_dung || response.data.user || response.data;
+          accessToken = response.data.access_token || response.data.token;
           
-          // Update all Redux states
+          // If userData is nested in response.data, try to extract it
+          if (!userData || !userData.ten_nguoi_dung) {
+            // Maybe the user data is directly in response.data
+            if (response.data.ten_nguoi_dung) {
+              userData = response.data;
+            }
+          }
+        }
+        
+        console.log("Extracted userData:", userData);
+        console.log("Extracted accessToken:", accessToken);
+        
+        // Validate extracted data
+        if (userData && userData.ten_nguoi_dung && (userData._id || userData.id)) {
+          localStorage.setItem('userInfo', JSON.stringify(userData));
+          
+          if (accessToken) {
+            localStorage.setItem('token', accessToken);
+            dispatch(setToken(accessToken));
+            dispatch(setClientToken(accessToken));
+          }
+          
           dispatch(setUserInfo(userData));
           dispatch(loginSuccess(userData));
-          dispatch(setToken(accessToken));
           dispatch(loginClientSuccess(userData));
-          dispatch(setClientToken(accessToken));
           
           initialAuthCheckDone.current = true;
           
           console.log("Registration successful, calling onSuccess");
-          onSuccess();
+          
+          // Small delay to ensure all Redux state updates are processed
+          setTimeout(() => {
+            onSuccess();
+          }, 200);
+          
         } else {
-          console.error("Missing user data or token in response:", response.data);
-          setError('Đăng ký thành công nhưng không thể lấy thông tin người dùng');
+          console.error("Invalid user data in response:", userData);
+          setError('Đăng ký thành công nhưng thông tin người dùng không hợp lệ. Vui lòng thử đăng nhập.');
         }
       } else {
         console.error("Registration response error:", response);
@@ -214,7 +285,6 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
     e.preventDefault();
     setError('');
     
-    // Basic validation
     if (!loginFormData.ten_dang_nhap || !loginFormData.mat_khau) {
       setError('Vui lòng nhập tên đăng nhập và mật khẩu');
       return;
@@ -222,41 +292,46 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
     
     try {
       setLoading(true);
-      console.log("Submitting login data to server:", {
-        username: loginFormData.ten_dang_nhap,
-        password: '********' // Don't log actual password
-      });
-      
       const response = await Auth.login(loginFormData.ten_dang_nhap, loginFormData.mat_khau);
       
       console.log("Login response:", response);
       
-      if (response && response.status === "Success" && response.data) {
-        // Get user data from the login response - handle different response formats
-        const userData = response.data.nguoi_dung || response.data.user;
-        const accessToken = response.data.access_token || response.data.token;
+      if (response && response.status === "Success") {
+        let userData = null;
+        let accessToken = null;
         
-        if (userData && accessToken) {
-          console.log("User data:", userData);
-          console.log("Access token:", accessToken);
-          
-          // Store user info in localStorage
+        if (response.data) {
+          userData = response.data.nguoi_dung || response.data.user || response.data;
+          accessToken = response.data.access_token || response.data.token;
+        }
+        
+        console.log("Extracted userData:", userData);
+        console.log("Extracted accessToken:", accessToken);
+        
+        // Validate extracted data
+        if (userData && userData.ten_nguoi_dung && (userData._id || userData.id)) {
           localStorage.setItem('userInfo', JSON.stringify(userData));
-          localStorage.setItem('token', accessToken);
           
-          // Update all Redux states
+          if (accessToken) {
+            localStorage.setItem('token', accessToken);
+            dispatch(setToken(accessToken));
+            dispatch(setClientToken(accessToken));
+          }
+          
           dispatch(setUserInfo(userData));
           dispatch(loginSuccess(userData));
-          dispatch(setToken(accessToken));
           dispatch(loginClientSuccess(userData));
-          dispatch(setClientToken(accessToken));
           
-          // Call the success callback - this will trigger a page reload
           console.log("Login successful, calling onSuccess");
-          onSuccess();
+          
+          // Small delay to ensure all Redux state updates are processed
+          setTimeout(() => {
+            onSuccess();
+          }, 200);
+          
         } else {
-          console.error("Missing user data or token in login response:", response.data);
-          setError('Đăng nhập thành công nhưng không thể lấy thông tin người dùng');
+          console.error("Invalid user data in login response:", userData);
+          setError('Đăng nhập thành công nhưng thông tin người dùng không hợp lệ');
         }
       } else {
         console.error("Login response error:", response);
@@ -332,6 +407,49 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
                 variant="outlined"
               />
             </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth required>
+                <InputLabel>Giới tính</InputLabel>
+                <Select
+                  value={registerFormData.gioi_tinh}
+                  label="Giới tính"
+                  name="gioi_tinh"
+                  onChange={handleRegisterChange}
+                >
+                  <MenuItem value="Nam">Nam</MenuItem>
+                  <MenuItem value="Nữ">Nữ</MenuItem>
+                  <MenuItem value="Khác">Khác</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControl fullWidth required disabled={loadingDonVi}>
+                <InputLabel>Đơn vị</InputLabel>
+                <Select
+                  value={registerFormData.ma_don_vi}
+                  label="Đơn vị"
+                  name="ma_don_vi"
+                  onChange={handleRegisterChange}
+                >
+                  {loadingDonVi ? (
+                    <MenuItem disabled>
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                      Đang tải...
+                    </MenuItem>
+                  ) : donViList.length > 0 ? (
+                    donViList.map((donVi) => (
+                      <MenuItem key={donVi._id || donVi.id} value={donVi._id || donVi.id}>
+                        {donVi.ten_don_vi || donVi.name}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>Không có đơn vị nào</MenuItem>
+                  )}
+                </Select>
+              </FormControl>
+            </Grid>
           </Grid>
           
           <Button
@@ -339,7 +457,7 @@ export const RegisterForm = ({ onSuccess, maKhaoSat }: RegisterFormProps) => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2, py: 1.5 }}
-            disabled={loading}
+            disabled={loading || loadingDonVi}
           >
             {loading ? <CircularProgress size={24} /> : 'Đăng ký và tiếp tục'}
           </Button>
